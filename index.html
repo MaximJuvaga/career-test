@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест на профориентацию</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">Карьера: Твой путь</div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="#about">О тесте</a></li>
+                    <li><a href="#professions">Профессии</a></li>
+                    <li><a href="#contacts">Контакты</a></li>
+                </ul>
+            </nav>
+            <button class="cta-button">Пройти тест</button>
+        </div>
+    </header>
+
+    <!-- Главный блок -->
+    <section class="hero">
+        <div class="container">
+            <h1>Узнай свою идеальную карьеру!</h1>
+            <p>Пройди бесплатный тест и получи рекомендации по выбору образовательной траектории.</p>
+            <button class="start-test">Начать тест</button>
+        </div>
+    </section>
+
+    <!-- Описание теста -->
+    <section id="about" class="about-test">
+        <div class="container">
+            <h2>Что оценивает тест?</h2>
+            <p>Тест поможет определить ваши профессиональные интересы и предпочтения, чтобы выбрать наиболее подходящую карьеру.</p>
+        </div>
+    </section>
+
+    <!-- Профессии -->
+    <section id="professions" class="professions">
+        <div class="container">
+            <h2>Популярные профессии</h2>
+            <div class="profession-list">
+                <div class="profession-item">
+                    <img src="images/profession1.jpg" alt="Инженер">
+                    <h3>Инженер</h3>
+                    <p>Разработка и внедрение инновационных технологий.</p>
+                </div>
+                <div class="profession-item">
+                    <img src="images/profession2.jpg" alt="Маркетолог">
+                    <h3>Маркетолог</h3>
+                    <p>Анализ рынка и разработка стратегий продвижения.</p>
+                </div>
+                <div class="profession-item">
+                    <img src="images/profession3.jpg" alt="Дизайнер">
+                    <h3>Дизайнер</h3>
+                    <p>Создание визуального контента и интерфейсов.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Форма сбора данных -->
+    <section id="contacts" class="form-section">
+        <div class="container">
+            <h2>Пройдите тест и получите рекомендации</h2>
+            <form action="submit_form.php" method="POST">
+                <input type="text" placeholder="Имя" required>
+                <input type="email" placeholder="Email" required>
+                <input type="number" placeholder="Возраст" required>
+                <input type="text" placeholder="Город" required>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 Карьера: Твой путь. Все права защищены.</p>
+            <a href="#">Политика конфиденциальности</a>
+            <a href="#">Пользовательское соглашение</a>
+        </div>
+    </footer>
+</body>
+</html>
