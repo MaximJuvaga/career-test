@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тест на профориентацию</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Подключаем библиотеку html2canvas для создания открыток -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <!-- Шапка -->
@@ -49,6 +51,31 @@
                 <button type="submit">Получить результат</button>
             </form>
             <div id="test-result" class="result"></div>
+
+            <!-- Блок с вакансиями (изначально скрыт) -->
+            <section id="vacancies-section" class="vacancies-section" style="display: none;">
+                <div class="container">
+                    <h2>Актуальные вакансии</h2>
+                    <div id="vacancies-list">
+                        <!-- Здесь будут отображаться вакансии -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Блок с конструктором открыток (изначально скрыт) -->
+            <section id="postcard-section" class="postcard-section" style="display: none;">
+                <div class="container">
+                    <h2>Создайте памятную открытку</h2>
+                    <p>Поделитесь своими результатами с друзьями!</p>
+                    <form id="postcard-form">
+                        <textarea placeholder="Введите текст для открытки (например, «Я прошёл тест на профориентацию, попробуй и ты!»)"></textarea>
+                        <button type="submit">Создать открытку</button>
+                    </form>
+                    <div id="postcard-preview">
+                        <!-- Здесь будет предварительный просмотр открытки -->
+                    </div>
+                </div>
+            </section>
         </div>
     </section>
 
@@ -60,5 +87,93 @@
             <a href="#">Пользовательское соглашение</a>
         </div>
     </footer>
+
+    <!-- JavaScript для работы с тестом, вакансиями и конструктором открыток -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const testForm = document.getElementById('simple-test-form');
+            const testResult = document.getElementById('test-result');
+            const vacanciesSection = document.getElementById('vacancies-section');
+            const vacanciesList = document.getElementById('vacancies-list');
+            const postcardSection = document.getElementById('postcard-section');
+            const postcardForm = document.getElementById('postcard-form');
+            const postcardPreview = document.getElementById('postcard-preview');
+
+            // Обработка отправки формы теста
+            testForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Собираем данные из формы
+                const formData = new FormData(testForm);
+                const email = formData.get('email');
+                const q1 = formData.get('q1');
+                const q2 = formData.get('q2');
+
+                try {
+                    // Отправляем данные на сервер
+                    const response = await fetch('submit_test.php', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, q1, q2 }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const result = await response.json();
+
+                    // Отображаем результат теста
+                    testResult.innerHTML = `<p><strong>Результат:</strong> ${result.profession}</p>`;
+
+                    // Отображаем вакансии
+                    if (result.vacancies.length > 0) {
+                        let vacanciesHtml = '<ul>';
+                        result.vacancies.forEach(vacancy => {
+                            vacanciesHtml += `
+                                <li>
+                                    <strong>${vacancy.title}</strong><br>
+                                    Работодатель: ${vacancy.employer}<br>
+                                    Зарплата: ${vacancy.salary}<br>
+                                    <a href="${vacancy.url}" target="_blank">Подробнее на hh.ru</a>
+                                </li>
+                            `;
+                        });
+                        vacanciesHtml += '</ul>';
+                        vacanciesList.innerHTML = vacanciesHtml;
+                        vacanciesSection.style.display = 'block';
+                    } else {
+                        vacanciesList.innerHTML = '<p>Нет актуальных вакансий.</p>';
+                    }
+
+                    // Показываем блок с конструктором открыток
+                    postcardSection.style.display = 'block';
+                } catch (error) {
+                    testResult.innerHTML = `<p>Произошла ошибка. Попробуйте снова.</p>`;
+                }
+            });
+
+            // Обработка создания открытки
+            postcardForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = postcardForm.querySelector('textarea').value;
+
+                // Создаем HTML-код открытки
+                postcardPreview.innerHTML = `
+                    <div class="postcard">
+                        <p>${text}</p>
+                        <button onclick="downloadPostcard()">Скачать открытку</button>
+                    </div>
+                `;
+            });
+
+            // Функция для скачивания открытки
+            window.downloadPostcard = () => {
+                const postcard = postcardPreview.querySelector('.postcard');
+                html2canvas(postcard).then(canvas => {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = 'postcard.png';
+                    link.click();
+                });
+            };
+        });
+    </script>
 </body>
 </html>

@@ -4,35 +4,68 @@
 require_once 'db.php'; // Подключаем файл с настройками базы данных
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Получаем ответы из формы
+    // Получаем данные из формы
     $q1 = $_POST['q1'] ?? '';
     $q2 = $_POST['q2'] ?? '';
     $email = $_POST['email'] ?? ''; // Email пользователя
 
     // Простая логика для вывода результата
     if ($q1 === 'yes' && $q2 === 'yes') {
-        $result = "Вам подходит работа инженером!";
+        $profession = "инженер";
     } elseif ($q1 === 'yes' && $q2 === 'no') {
-        $result = "Вам подходит работа исследователем!";
+        $profession = "исследователь";
     } elseif ($q1 === 'no' && $q2 === 'yes') {
-        $result = "Вам подходит работа в сфере управления проектами!";
+        $profession = "менеджер проектов";
     } else {
-        $result = "Вам подходит работа в сфере маркетинга!";
+        $profession = "маркетолог";
     }
 
+    // Сохраняем результаты теста в базу данных
     try {
-        // Сохраняем результаты теста в базу данных
         $stmt = $pdo->prepare("INSERT INTO test_results (user_email, q1, q2, result) VALUES (:email, :q1, :q2, :result)");
         $stmt->execute([
             ':email' => $email,
             ':q1' => $q1,
             ':q2' => $q2,
-            ':result' => $result
+            ':result' => $profession
         ]);
-
-        echo $result;
     } catch (PDOException $e) {
-        echo "Ошибка: " . $e->getMessage();
+        echo json_encode(['error' => 'Ошибка при сохранении данных: ' . $e->getMessage()]);
+        exit;
     }
+
+    // Запрос к API HeadHunter для поиска вакансий
+    $apiUrl = "https://api.hh.ru/vacancies";
+    $query = urlencode($profession); // Кодируем название профессии для запроса
+    $response = file_get_contents("$apiUrl?text=$query&area=1&per_page=5"); // area=1 - Москва, per_page=5 - 5 вакансий
+
+    if (!$response) {
+        echo json_encode([
+            'profession' => $profession,
+            'vacancies' => [],
+            'message' => 'Не удалось получить вакансии. Попробуйте позже.'
+        ]);
+        exit;
+    }
+
+    $vacanciesData = json_decode($response, true);
+    $vacancies = [];
+
+    if (!empty($vacanciesData['items'])) {
+        foreach ($vacanciesData['items'] as $vacancy) {
+            $vacancies[] = [
+                'title' => $vacancy['name'],
+                'employer' => $vacancy['employer']['name'],
+                'salary' => $vacancy['salary'] ? ($vacancy['salary']['from'] . ' - ' . $vacancy['salary']['to']) : 'Не указана',
+                'url' => $vacancy['alternate_url']
+            ];
+        }
+    }
+
+    // Формируем ответ
+    echo json_encode([
+        'profession' => $profession,
+        'vacancies' => $vacancies
+    ]);
 }
 ?>
