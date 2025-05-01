@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тест на профориентацию</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <!-- Шапка -->
@@ -27,7 +27,7 @@
         <div class="container">
             <h1>Узнай свою идеальную карьеру!</h1>
             <p>Пройди бесплатный тест и получи рекомендации по выбору образовательной траектории.</p>
-            <button class="start-test">Начать тест</button>
+            <a href="test.html" class="start-test">Начать тест</a>
         </div>
     </section>
 
@@ -68,10 +68,10 @@
         <div class="container">
             <h2>Пройдите тест и получите рекомендации</h2>
             <form action="submit_form.php" method="POST">
-                <input type="text" placeholder="Имя" required>
-                <input type="email" placeholder="Email" required>
-                <input type="number" placeholder="Возраст" required>
-                <input type="text" placeholder="Город" required>
+                <input type="text" name="name" placeholder="Имя" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="number" name="age" placeholder="Возраст" required>
+                <input type="text" name="city" placeholder="Город" required>
                 <button type="submit">Отправить</button>
             </form>
         </div>

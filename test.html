@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест на профориентацию</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">Карьера: Твой путь</div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html">На главную</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Блок с тестом -->
+    <section class="test-section">
+        <div class="container">
+            <h2>Пройдите тест</h2>
+            <p>Ответьте на два вопроса, чтобы получить рекомендации.</p>
+            <form id="simple-test-form" action="submit_test.php" method="POST">
+                <!-- Поле для email -->
+                <div class="question">
+                    <p>Введите ваш email:</p>
+                    <input type="email" name="email" placeholder="example@example.com" required>
+                </div>
+
+                <!-- Первый вопрос -->
+                <div class="question">
+                    <p>1. Вам нравится работать с технологиями?</p>
+                    <label><input type="radio" name="q1" value="yes" required> Да</label>
+                    <label><input type="radio" name="q1" value="no"> Нет</label>
+                </div>
+
+                <!-- Второй вопрос -->
+                <div class="question">
+                    <p>2. Вы предпочитаете работать в команде?</p>
+                    <label><input type="radio" name="q2" value="yes" required> Да</label>
+                    <label><input type="radio" name="q2" value="no"> Нет</label>
+                </div>
+
+                <!-- Кнопка отправки -->
+                <button type="submit">Получить результат</button>
+            </form>
+            <div id="test-result" class="result"></div>
+        </div>
+    </section>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 Карьера: Твой путь. Все права защищены.</p>
+            <a href="#">Политика конфиденциальности</a>
+            <a href="#">Пользовательское соглашение</a>
+        </div>
+    </footer>
+</body>
+</html>
