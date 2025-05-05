@@ -245,3 +245,29 @@ body {
 .programs-section p {
     margin-bottom: 30px;
 }
+
+/* Блок направлений */
+#programs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+#vacancies-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Карточки */
+.test-item, .profession-item, .vacancy-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: #fff;
+    transition: transform 0.3s;
+}
+
+.test-item:hover, .profession-item:hover, .vacancy-item:hover {
+    transform: translateY(-5px);
+}

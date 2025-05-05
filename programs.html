@@ -22,11 +22,11 @@
     </div>
 </header>
 
-<!-- Блок с направлениями -->
+<!-- Блок с программами -->
 <section class="programs-section">
     <div class="container">
-        <h2>Направления подготовки ТулГУ</h2>
-        <p>Выберите интересующее направление — переходите по ссылке и узнайте подробности.</p>
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">Направления подготовки ТулГУ</h2>
+        <p style="margin-bottom: 30px;">Выберите интересующее направление — переходите по ссылке и узнайте подробности.</p>
         <div id="programs-list"></div>
     </div>
 </section>
@@ -43,7 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const programsList = document.getElementById('programs-list');
 
     fetch('php/get_uni_programs.php')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error! status: " + response.status);
+            }
+            return response.json();
+        })
         .then(programs => {
             if (programs.error) {
                 programsList.innerHTML = `<p style="color:red;">${programs.error}</p>`;
@@ -68,8 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 card.innerHTML = `
                     <h4>${program.code} — ${program.name}</h4>
-                    <p><strong>Уровень:</strong> ${program.level}</p>
-                    <p><strong>Форма обучения:</strong> ${program.form}</p>
+                    <p>${program.description}</p>
                     <a href="${program.link}" target="_blank" style="color: #007bff;">Подробнее →</a>
                 `;
 
@@ -78,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error("Ошибка:", error);
-            programsList.innerHTML = '<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>';
+            programsList.innerHTML = `<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>`;
         });
 });
 </script>

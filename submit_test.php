@@ -1,116 +1,129 @@
 <?php
-// submit_test.php
-
-require_once 'db.php'; // Подключаем файл с настройками базы данных
+require_once 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Получаем данные из POST-запроса
     $q1 = $_POST['q1'] ?? '';
     $q2 = $_POST['q2'] ?? '';
-    $email = $_POST['email'] ?? ''; // Email пользователя
+    $q3 = $_POST['q3'] ?? '';
 
-    // Простая логика для вывода результата
-    if ($q1 === 'yes' && $q2 === 'yes') {
-        $profession = "оператор дронов";
-    } elseif ($q1 === 'yes' && $q2 === 'no') {
-        $profession = "разработчик программного обеспечения для БПЛА";
-    } elseif ($q1 === 'no' && $q2 === 'yes') {
-        $profession = "менеджер проектов БПЛА";
+    // Определение базовой тематики на основе ответов
+    if ($q1 === 'yes' && $q2 === 'yes' && $q3 === 'high') {
+        $theme = "техническая";
+    } elseif ($q1 === 'yes' && $q2 === 'no' && $q3 === 'high') {
+        $theme = "программирование";
+    } elseif ($q1 === 'no' && $q2 === 'yes' && $q3 === 'medium') {
+        $theme = "менеджмент";
     } else {
-        $profession = "маркетолог в сфере технологий";
+        $theme = "маркетинг";
     }
 
-    // Логируем результат теста
-    error_log("Результат теста: профессия = $profession");
+    error_log("Результат теста: тематика = $theme");
 
-    // Сохраняем результаты теста в базу данных
-    try {
-        $stmt = $pdo->prepare("INSERT INTO test_results (user_email, q1, q2, result) VALUES (:email, :q1, :q2, :result)");
-        $stmt->execute([
-            ':email' => $email,
-            ':q1' => $q1,
-            ':q2' => $q2,
-            ':result' => $profession
-        ]);
-        error_log("Данные успешно сохранены в базу данных.");
-    } catch (PDOException $e) {
-        error_log("Ошибка при сохранении данных в базу: " . $e->getMessage());
-        echo json_encode(['error' => 'Ошибка при сохранении данных: ' . $e->getMessage()]);
-        exit;
-    }
+    // Фиктивная связь тематики с направлениями
+    $programsMapping = [
+        "техническая" => [
+            ["code" => "09.03.01", "name" => "Информатика и вычислительная техника"],
+            ["code" => "15.03.04", "name" => "Автоматизация технологических процессов"],
+            ["code" => "13.03.02", "name" => "Электроэнергетика"]
+        ],
+        "программирование" => [
+            ["code" => "09.03.04", "name" => "Программная инженерия"],
+            ["code" => "09.03.01", "name" => "Информатика и вычислительная техника"],
+            ["code" => "10.05.01", "name" => "Компьютерная безопасность"]
+        ],
+        "менеджмент" => [
+            ["code" => "38.03.02", "name" => "Менеджмент"],
+            ["code" => "38.03.01", "name" => "Экономика"],
+            ["code" => "37.03.01", "name" => "Психология"]
+        ],
+        "маркетинг" => [
+            ["code" => "38.03.06", "name" => "Торговое дело"],
+            ["code" => "42.03.01", "name" => "Реклама и связи с общественностью"],
+            ["code" => "38.03.02", "name" => "Менеджмент"]
+        ]
+    ];
 
-    // Запрос к API HeadHunter для поиска вакансий
-    $apiUrl = "https://api.hh.ru/vacancies";
-    $query = urlencode($profession); // Кодируем название профессии для запроса
-    $area = 113; // Россия
-    $perPage = 5;
+    // Выбираем подходящие направления
+    $relatedPrograms = $programsMapping[$theme] ?? [];
 
-    $url = "$apiUrl?text=$query&area=$area&per_page=$perPage";
+    // Фиктивные профессии для каждого направления
+    $professionsMapping = [
+        "09.03.01" => ["инженер", "разработчик ПО", "специалист по внедрению"],
+        "09.03.04" => ["разработчик программного обеспечения", "инженер по автоматизации", "тестировщик ПО"],
+        "15.03.04" => ["инженер-автоматчик", "инженер по внедрению систем", "инженер по эксплуатации"],
+        "13.03.02" => ["инженер по электроснабжению", "энергетик", "инженер по сетям"],
+        "38.03.02" => ["менеджер проектов", "аналитик", "руководитель отдела продаж"],
+        "38.03.01" => ["экономист", "финансовый аналитик", "кредитный специалист"],
+        "37.03.01" => ["психолог", "HR-специалист", "коуч"],
+        "38.03.06" => ["маркетолог", "PR-менеджер", "копирайтер"],
+        "42.03.01" => ["специалист по рекламе", "SMM-менеджер", "медиапланер"]
+    ];
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-    ]);
-    $response = curl_exec($ch);
+    // Подбираем вакансии по профессии (HeadHunter)
+    function getVacancies($profession) {
+        $url = "https://api.hh.ru/vacancies?text=" . urlencode($profession) . "&area=113&per_page=5";
 
-    if (curl_errno($ch)) {
-        error_log("Ошибка cURL: " . curl_error($ch));
-        echo json_encode(['error' => 'Ошибка при выполнении запроса к API: ' . curl_error($ch)]);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['User-Agent: CareerTestBot']);
+        $response = curl_exec($ch);
         curl_close($ch);
-        exit;
+
+        if (!$response) return [];
+
+        $data = json_decode($response, true);
+        $vacancies = [];
+
+        foreach ($data['items'] as $item) {
+            $salary = 'Не указана';
+            if (!empty($item['salary'])) {
+                $from = $item['salary']['from'] ?? null;
+                $to = $item['salary']['to'] ?? null;
+                $currency = $item['salary']['currency'] ?? 'руб.';
+                if ($from && $to) {
+                    $salary = "от $from до $to $currency";
+                } elseif ($from) {
+                    $salary = "от $from $currency";
+                } elseif ($to) {
+                    $salary = "до $to $currency";
+                }
+            }
+
+            $vacancies[] = [
+                'title' => $item['name'],
+                'employer' => $item['employer']['name'] ?? 'Не указан',
+                'salary' => $salary,
+                'url' => $item['alternate_url']
+            ];
+        }
+
+        return $vacancies;
     }
 
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    if ($httpCode != 200) {
-        error_log("API HeadHunter вернул ошибку: HTTP $httpCode");
-        echo json_encode(['error' => "API HeadHunter вернул ошибку: HTTP $httpCode"]);
-        curl_close($ch);
-        exit;
-    }
+    // Для каждого направления подставляем профессии и вакансии
+    $finalPrograms = [];
 
-    curl_close($ch);
+    foreach ($relatedPrograms as $program) {
+        $professions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
+        $vacancies = [];
 
-    // Логируем ответ от API
-    error_log("Ответ от API HeadHunter: " . $response);
+        // Берём первую профессию из списка и парсим HH
+        if (!empty($professions)) {
+            $vacancies = getVacancies($professions[0]);
+        }
 
-    $vacanciesData = json_decode($response, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log("Ошибка при декодировании JSON-ответа.");
-        echo json_encode(['error' => 'Ошибка при декодировании JSON-ответа.']);
-        exit;
-    }
-
-    // Проверяем, есть ли вакансии в ответе
-    if (empty($vacanciesData['items'])) {
-        error_log("По запросу '$profession' не найдено вакансий.");
-        echo json_encode([
-            'profession' => $profession,
-            'vacancies' => [],
-            'message' => 'Не найдено вакансий для этой профессии.'
-        ]);
-        exit;
-    }
-
-    // Формируем список вакансий
-    $vacancies = [];
-    foreach ($vacanciesData['items'] as $vacancy) {
-        $vacancies[] = [
-            'title' => $vacancy['name'],
-            'employer' => $vacancy['employer']['name'],
-            'salary' => $vacancy['salary'] ? ($vacancy['salary']['from'] . ' - ' . $vacancy['salary']['to']) : 'Не указана',
-            'url' => $vacancy['alternate_url']
+        $finalPrograms[] = [
+            'program' => $program,
+            'professions' => $professions,
+            'vacancies' => $vacancies
         ];
     }
 
-    // Логируем успешное формирование списка вакансий
-    error_log("Список вакансий успешно сформирован.");
-
-    // Формируем ответ
+    // Отправляем результат
     echo json_encode([
-        'profession' => $profession,
-        'vacancies' => $vacancies
+        'theme' => $theme,
+        'programs' => array_slice($finalPrograms, 0, 3)
     ]);
 }
 ?>

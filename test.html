@@ -2,143 +2,172 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тест на профориентацию</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Профориентационный тест</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-    <!-- Шапка -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">Карьера: Твой путь</div>
-            <nav class="nav">
-                <ul>
-                    <li><a href="index.html">На главную</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
 
-    <!-- Блок с тестом -->
-    <section class="test-section">
-        <div class="container">
-            <h2>Пройдите тест</h2>
-            <p>Ответьте на два вопроса, чтобы получить рекомендации.</p>
-            <form id="simple-test-form">
-                <!-- Поле для email -->
-                <div class="question">
-                    <p>Введите ваш email:</p>
-                    <input type="email" name="email" placeholder="example@example.com" required>
-                </div>
+<!-- Шапка -->
+<header class="header">
+    <div class="container">
+        <div class="logo">Карьера: Твой путь</div>
+        <nav class="nav">
+            <ul>
+                <li><a href="index.html">На главную</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
 
-                <!-- Первый вопрос -->
-                <div class="question">
-                    <p>1. Вам нравится работать с технологиями?</p>
-                    <label><input type="radio" name="q1" value="yes" required> Да</label>
-                    <label><input type="radio" name="q1" value="no"> Нет</label>
-                </div>
+<!-- Блок с тестом -->
+<section class="test-section">
+    <div class="container">
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">Пройдите тест</h2>
+        <p style="margin-bottom: 30px;">Ответьте на несколько вопросов и узнайте свою идеальную профессию.</p>
 
-                <!-- Второй вопрос -->
-                <div class="question">
-                    <p>2. Вы предпочитаете работать в команде?</p>
-                    <label><input type="radio" name="q2" value="yes" required> Да</label>
-                    <label><input type="radio" name="q2" value="no"> Нет</label>
-                </div>
+        <form id="simple-test-form">
+            <!-- Вопрос 1 -->
+            <div class="question" style="margin-bottom: 20px;">
+                <p style="font-weight: 600;">1. Вам нравится работать с технологиями?</p>
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="radio" name="q1" value="yes" required> Да
+                </label>
+                <label style="display: block;">
+                    <input type="radio" name="q1" value="no"> Нет
+                </label>
+            </div>
 
-                <!-- Кнопка отправки -->
-                <button type="submit">Получить результат</button>
-            </form>
-            <div id="test-result" class="result"></div>
+            <!-- Вопрос 2 -->
+            <div class="question" style="margin-bottom: 20px;">
+                <p style="font-weight: 600;">2. Вы предпочитаете работать в команде?</p>
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="radio" name="q2" value="yes" required> Да
+                </label>
+                <label style="display: block;">
+                    <input type="radio" name="q2" value="no"> Нет
+                </label>
+            </div>
 
-            <!-- Блок с вакансиями (изначально скрыт) -->
-            <section id="vacancies-section" style="display: none;">
-                <div class="container">
-                    <h2>Актуальные вакансии</h2>
-                    <div id="vacancies-list">
-                        <!-- Здесь будут отображаться вакансии -->
-                    </div>
-                </div>
-            </section>
-        </div>
-    </section>
+            <!-- Вопрос 3 -->
+            <div class="question" style="margin-bottom: 20px;">
+                <p style="font-weight: 600;">3. Насколько вы любите аналитику?</p>
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="radio" name="q3" value="high" required> Очень люблю
+                </label>
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="radio" name="q3" value="medium"> Иногда
+                </label>
+                <label style="display: block;">
+                    <input type="radio" name="q3" value="low"> Не люблю
+                </label>
+            </div>
 
-    <!-- Подвал -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2023 Карьера: Твой путь. Все права защищены.</p>
-            <a href="#">Политика конфиденциальности</a>
-            <a href="#">Пользовательское соглашение</a>
-        </div>
-    </footer>
+            <!-- Кнопка -->
+            <button type="submit"
+                    style="background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s;"
+                    onmouseover="this.style.backgroundColor='#0056b3'"
+                    onmouseout="this.style.backgroundColor='#007bff'">
+                Получить результат
+            </button>
+        </form>
 
-    <!-- JavaScript для работы с тестом и вакансиями -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const testForm = document.getElementById('simple-test-form');
-            const testResult = document.getElementById('test-result');
-            const vacanciesSection = document.getElementById('vacancies-section');
-            const vacanciesList = document.getElementById('vacancies-list');
+        <!-- Результат -->
+        <div id="test-result" style="margin-top: 30px; font-size: 1.25rem; color: #003366;"></div>
 
-            // Обработка отправки формы теста
-            testForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+        <!-- Блок направлений -->
+        <section id="programs-section" style="display: none; margin-top: 40px;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
+            <div id="programs-list" style="display: flex; gap: 20px; flex-wrap: wrap;"></div>
+        </section>
+    </div>
+</section>
 
-                // Собираем данные из формы
-                const formData = new FormData(testForm);
-                const email = formData.get('email');
-                const q1 = formData.get('q1');
-                const q2 = formData.get('q2');
+<!-- Подвал -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>
+    </div>
+</footer>
 
-                try {
-                    console.log("Отправляем запрос на сервер..."); // Отладочное сообщение
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('simple-test-form');
+    const resultDiv = document.getElementById('test-result');
+    const programsList = document.getElementById('programs-list');
+    const programsSection = document.getElementById('programs-section');
 
-                    // Отправляем данные на сервер
-                    const response = await fetch('submit_test.php', {
-                        method: 'POST',
-                        body: new URLSearchParams({
-                            email: email,
-                            q1: q1,
-                            q2: q2
-                        }),
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                    });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-                    console.log("Ответ от сервера получен."); // Отладочное сообщение
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => data[key] = value);
 
-                    const result = await response.json();
-                    console.log("JSON-ответ от сервера:", result); // Отладочное сообщение
-
-                    if (result.error) {
-                        testResult.innerHTML = `<p>${result.error}</p>`;
-                        return;
-                    }
-
-                    testResult.innerHTML = `<p><strong>Результат:</strong> ${result.profession}</p>`;
-
-                    if (result.vacancies.length > 0) {
-                        let vacanciesHtml = '<ul>';
-                        result.vacancies.forEach(vacancy => {
-                            vacanciesHtml += `
-                                <li>
-                                    <strong>${vacancy.title}</strong><br>
-                                    Работодатель: ${vacancy.employer}<br>
-                                    Зарплата: ${vacancy.salary}<br>
-                                    <a href="${vacancy.url}" target="_blank">Подробнее на hh.ru</a>
-                                </li>
-                            `;
-                        });
-                        vacanciesHtml += '</ul>';
-                        vacanciesList.innerHTML = vacanciesHtml;
-                        vacanciesSection.style.display = 'block';
-                    } else {
-                        vacanciesList.innerHTML = '<p>Нет актуальных вакансий.</p>';
-                    }
-                } catch (error) {
-                    console.error("Произошла ошибка:", error); // Отладочное сообщение
-                    testResult.innerHTML = `<p>Произошла ошибка. Попробуйте снова.</p>`;
-                }
+        try {
+            const response = await fetch('submit_test.php', {
+                method: 'POST',
+                body: new URLSearchParams(data),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
-        });
-    </script>
+
+            const result = await response.json();
+
+            if (result.error) {
+                resultDiv.innerHTML = `<p style="color:red;">${result.error}</p>`;
+                return;
+            }
+
+            // Показываем тематику
+            resultDiv.innerHTML = `<p><strong>Ваша тематика:</strong> ${result.theme || 'не определена'}</p>`;
+
+            // Показываем направления подготовки
+            if (result.programs && result.programs.length > 0) {
+                programsSection.style.display = 'block';
+                programsList.innerHTML = '';
+
+                result.programs.forEach(item => {
+                    const program = item.program;
+                    const professions = item.professions.join(', ');
+                    const vacancies = item.vacancies;
+
+                    const card = document.createElement('div');
+                    card.style.border = '1px solid #ddd';
+                    card.style.padding = '20px';
+                    card.style.marginBottom = '30px';
+                    card.style.background = '#fff';
+                    card.style.borderRadius = '8px';
+
+                    card.innerHTML = `
+                        <h4>${program.code} — ${program.name}</h4>
+                        <p><strong>Подходящие профессии:</strong> ${professions}</p>
+                        <hr>
+                        <h5>Подходящие вакансии:</h5>
+                        <ul style="list-style: none; padding-left: 0;">
+                            ${vacancies.map(v => `
+                                <li style="margin-bottom: 10px;">
+                                    <a href="${v.url}" target="_blank">${v.title}</a><br>
+                                    Работодатель: ${v.employer}<br>
+                                    Зарплата: ${v.salary}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+
+                    programsList.appendChild(card);
+                });
+            } else {
+                programsSection.style.display = 'none';
+            }
+
+        } catch (err) {
+            console.error("Ошибка:", err);
+            resultDiv.innerHTML = `<p style="color:red;">Ошибка при загрузке данных</p>`;
+        }
+    });
+});
+</script>
+
 </body>
 </html>
