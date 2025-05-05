@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Направления подготовки ТулГУ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Шапка -->
+<header class="header">
+    <div class="container">
+        <div class="logo">Карьера: Твой путь</div>
+        <nav class="nav">
+            <ul>
+                <li><a href="index.html">На главную</a></li>
+                <li><a href="test.html">Пройти тест</a></li>
+                <li><a href="#">Направления обучения</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Блок с направлениями -->
+<section class="programs-section">
+    <div class="container">
+        <h2>Направления подготовки ТулГУ</h2>
+        <p>Выберите интересующее направление — переходите по ссылке и узнайте подробности.</p>
+        <div id="programs-list"></div>
+    </div>
+</section>
+
+<!-- Подвал -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const programsList = document.getElementById('programs-list');
+
+    fetch('php/get_uni_programs.php')
+        .then(response => response.json())
+        .then(programs => {
+            if (programs.error) {
+                programsList.innerHTML = `<p style="color:red;">${programs.error}</p>`;
+                return;
+            }
+
+            if (!programs.length) {
+                programsList.innerHTML = `<p>Нет доступных направлений.</p>`;
+                return;
+            }
+
+            programs.forEach(program => {
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ddd';
+                card.style.padding = '20px';
+                card.style.marginBottom = '20px';
+                card.style.borderRadius = '8px';
+                card.style.background = '#fff';
+                card.style.transition = 'transform 0.3s ease';
+                card.onmouseover = () => card.style.transform = 'translateY(-5px)';
+                card.onmouseout = () => card.style.transform = 'translateY(0)';
+
+                card.innerHTML = `
+                    <h4>${program.code} — ${program.name}</h4>
+                    <p><strong>Уровень:</strong> ${program.level}</p>
+                    <p><strong>Форма обучения:</strong> ${program.form}</p>
+                    <a href="${program.link}" target="_blank" style="color: #007bff;">Подробнее →</a>
+                `;
+
+                programsList.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+            programsList.innerHTML = '<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>';
+        });
+});
+</script>
+
+</body>
+</html>

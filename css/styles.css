@@ -232,3 +232,16 @@ body {
     text-align: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+.programs-section {
+    padding: 60px 20px;
+    background-color: #f4f4f9;
+}
+
+.programs-section h2 {
+    margin-bottom: 20px;
+}
+
+.programs-section p {
+    margin-bottom: 30px;
+}
