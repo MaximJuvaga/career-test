@@ -16,7 +16,7 @@
             <ul>
                 <li><a href="index.html">На главную</a></li>
                 <li><a href="test.html">Пройти тест</a></li>
-                <li><a href="#">Направления обучения</a></li>
+                <li><a href="#">Направления обучения</a></li> 
             </ul>
         </nav>
     </div>
@@ -42,39 +42,56 @@
 document.addEventListener('DOMContentLoaded', () => {
     const programsList = document.getElementById('programs-list');
 
+    // Список названий направлений
+    const programNames = {
+        "15.03.01": "Машиностроение",
+        "15.03.05": "Конструкторско-технологическое обеспечение машиностроительных производств",
+        "22.03.01": "Материаловедение и технологии материалов",
+        "07.03.01": "Архитектура",
+        "08.03.01": "Стандартизация и метрология",
+        "21.03.01": "Нефтегазовое дело",
+        "11.05.01": "Проектирование и технология электронных средств",
+        "17.05.01": "Специальные системы обеспечения движения поездов"
+    };
+
     fetch('php/get_uni_programs.php')
         .then(response => {
-            if (!response.ok) {
-                throw new Error("HTTP error! status: " + response.status);
-            }
+            if (!response.ok) throw new Error("HTTP error: " + response.status);
             return response.json();
         })
         .then(programs => {
-            if (programs.error) {
-                programsList.innerHTML = `<p style="color:red;">${programs.error}</p>`;
-                return;
-            }
-
             if (!programs.length) {
-                programsList.innerHTML = `<p>Нет доступных направлений.</p>`;
+                programsList.innerHTML = '<p>Нет доступных направлений</p>';
                 return;
             }
 
             programs.forEach(program => {
+                // Если название не найдено — берем из списка
+                let name = program.name === 'Не найдено' && program.code in programNames
+                    ? programNames[program.code]
+                    : program.name;
+
                 const card = document.createElement('div');
-                card.style.border = '1px solid #ddd';
-                card.style.padding = '20px';
-                card.style.marginBottom = '20px';
-                card.style.borderRadius = '8px';
-                card.style.background = '#fff';
-                card.style.transition = 'transform 0.3s ease';
+                card.className = 'test-item';
+                card.style = `
+                    border: 1px solid #ddd;
+                    padding: 25px;
+                    margin-bottom: 20px;
+                    border-radius: 8px;
+                    background: #fff;
+                    transition: transform 0.3s ease;
+                    width: 100%;
+                    max-width: 100%;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                `;
                 card.onmouseover = () => card.style.transform = 'translateY(-5px)';
                 card.onmouseout = () => card.style.transform = 'translateY(0)';
 
                 card.innerHTML = `
-                    <h4>${program.code} — ${program.name}</h4>
-                    <p>${program.description}</p>
-                    <a href="${program.link}" target="_blank" style="color: #007bff;">Подробнее →</a>
+                    <h4 style="font-size: 20px; margin: 0; flex: 1;"><strong>${program.code}</strong> — ${name}</h4>
+                    <a href="${program.link}" target="_blank" style="color: #007bff; white-space: nowrap;">Подробнее →</a>
                 `;
 
                 programsList.appendChild(card);
@@ -82,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error("Ошибка:", error);
-            programsList.innerHTML = `<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>`;
+            programsList.innerHTML = '<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>';
         });
 });
 </script>

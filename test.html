@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <title>Профориентационный тест</title>
     <link rel="stylesheet" href="../css/styles.css">
-    <!-- Chart.js -->
+    <!-- Chart.js (если нужен график) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <style>
-        body {
-            font-size: 20px; /* Увеличенный основной шрифт */
-        }
-
+        /* === Внешний вид теста === */
         .question {
             background-color: #fff;
             padding: 20px;
@@ -18,13 +15,6 @@
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             font-size: 18px;
-        }
-
-        .controls button,
-        .cta-button {
-            font-size: 18px !important;
-            padding: 14px 24px !important;
-            margin-top: 10px;
         }
 
         label {
@@ -51,6 +41,52 @@
             max-width: 100%;
             height: auto;
         }
+
+        /* === Красивые карточки с направлениями === */
+        #programs-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .test-item {
+            flex: 1 1 calc(33% - 15px); /* До 3 карточек в строке */
+            min-width: 250px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .test-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .test-item h4 {
+            font-size: 1.25rem;
+            margin: 0 0 10px;
+        }
+
+        .test-item p {
+            margin: 5px 0;
+        }
+
+        .test-item ul {
+            list-style: disc inside;
+            padding-left: 15px;
+        }
+
+        .test-item li {
+            margin-bottom: 5px;
+        }
+
+        .controls button,
+        .cta-button {
+            font-size: 18px !important;
+            padding: 14px 24px !important;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -72,10 +108,8 @@
     <div class="container">
         <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Профориентационный тест</h2>
         <p style="font-size: 1.25rem; margin-bottom: 30px;">Ответьте на вопросы и узнайте, какое направление вам подходит.</p>
-
         <form id="advanced-test-form">
             <div id="questions-container"></div>
-
             <div class="controls" style="text-align: center;">
                 <button type="button" id="prev-btn" disabled>← Предыдущие</button>
                 <button type="button" id="next-btn">Следующие →</button>
@@ -89,7 +123,7 @@
         <!-- Подходящие программы -->
         <section id="programs-section" style="display: none; margin-top: 40px;">
             <h3 style="font-size: 2rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
-            <div id="programs-list" style="display: flex; flex-wrap: wrap; gap: 20px;"></div>
+            <div id="programs-list"></div>
         </section>
 
         <!-- График -->
@@ -122,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Хотели бы вы участвовать в проведении научных исследований...", institute: "Политехнический институт" },
         { text: "Интересует ли вас проектирование и создание конструкционных материалов...", institute: "Политехнический институт" },
         { text: "Готовы ли вы к применению современных методов анализа и контроля качества материалов...", institute: "Политехнический институт" },
-
         { text: "Хотели бы вы участвовать в разработке концептуальных дизайнов...", institute: "Институт горного дела и строительства" },
         { text: "Интересует ли вас проектирование функциональных интерьеров...", institute: "Институт горного дела и строительства" },
         { text: "Готовы ли вы глубоко изучать строительные материалы...", institute: "Институт горного дела и строительства" },
@@ -133,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Интересует ли вас изучение исторических стилей...", institute: "Институт горного дела и строительства" },
         { text: "Готовы ли вы решать практические задачи...", institute: "Институт горного дела и строительства" },
         { text: "Хотели бы вы создавать экологичные проектные решения...", institute: "Институт горного дела и строительства" },
-
         { text: "Хотели бы вы изучать методы математического моделирования...", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Интересует ли вас разработка алгоритмов и программного обеспечения...", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Готовы ли вы освоить современные технологии программирования...", institute: "Институт прикладной математики и компьютерных наук" },
@@ -144,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Интересует ли вас математическое моделирование в экономике...", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Готовы ли вы освоить методы визуализации данных...", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Хотели бы вы применять методы криптографии и кибербезопасности...", institute: "Институт прикладной математики и компьютерных наук" },
-
         { text: "Интересует ли вас изучение принципов радиоэлектронных устройств...", institute: "Институт высокоточных систем им. Грязева" },
         { text: "Готовы ли вы освоить методы моделирования радиосистем...", institute: "Институт высокоточных систем им. Грязева" },
         { text: "Хотели бы вы поучаствовать в разработке новых радиоустройств...", institute: "Институт высокоточных систем им. Грязева" },
@@ -177,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const div = document.createElement('div');
             div.className = 'question';
-
             div.innerHTML = `
                 <p><strong>${q.text}</strong></p>
                 <label><input type="radio" name="q${qIndex}" id="${idYes}" value="1" ${answers[qIndex] === '1' ? 'checked' : ''}> Да</label><br>
@@ -209,8 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     nextBtn.addEventListener('click', () => {
         saveCurrentAnswers();
-        currentPage++;
-        renderQuestions(currentPage);
+        if (currentPage < Math.ceil(shuffledQuestions.length / questionsPerPage) - 1) {
+            currentPage++;
+            renderQuestions(currentPage);
+        }
     });
 
     form.addEventListener('submit', async (e) => {
@@ -226,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Object.entries(answers).forEach(([index, value]) => {
             if (value === '1') {
-                const institute = shuffledQuestions[index].institute;
-                scores[institute]++;
+                const inst = shuffledQuestions[index]?.institute;
+                if (inst in scores) scores[inst]++;
             }
         });
 
@@ -243,18 +275,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resultDiv.innerHTML = `<p><strong>Вам подходит:</strong> ${result.theme || 'не определено'}</p>`;
             programsList.innerHTML = '';
+
             if (result.programs && result.programs.length > 0) {
                 programsSection.style.display = 'block';
+
                 result.programs.forEach(item => {
                     const program = item.program;
                     const card = document.createElement('div');
                     card.className = 'test-item';
                     card.innerHTML = `
-                        <h4 style="font-size: 1.25rem;">${program.code} — ${program.name}</h4>
+                        <h4>${program.code} — ${program.name}</h4>
                         <p><strong>Подходящие профессии:</strong> ${item.professions.join(', ')}</p>
                         <hr>
-                        <h5 style="font-size: 1.15rem;">Подходящие вакансии:</h5>
-                        <ul style="list-style: disc inside; padding-left: 0;">
+                        <h5>Подходящие вакансии:</h5>
+                        <ul>
                             ${item.vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}</a>, ${v.employer}, ${v.salary}</li>`).join('')}
                         </ul>
                     `;
@@ -264,9 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 programsSection.style.display = 'none';
             }
 
-            // Построение графика
+            // Построение графика (по желанию)
             const ctx = document.getElementById('instituteChart').getContext('2d');
-
             const chartData = {
                 labels: Object.keys(scores),
                 datasets: [{
@@ -276,10 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }]
             };
 
-            if (window.myChartInstance) {
-                window.myChartInstance.destroy();
-            }
-
+            if (window.myChartInstance) window.myChartInstance.destroy();
             window.myChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
@@ -301,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
-
             chartSection.style.display = 'block';
 
         } catch (err) {

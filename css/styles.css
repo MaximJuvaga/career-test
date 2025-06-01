@@ -271,3 +271,37 @@ body {
 .test-item:hover, .profession-item:hover, .vacancy-item:hover {
     transform: translateY(-5px);
 }
+
+.test-item {
+    border: 1px solid #ddd;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #fff;
+    transition: transform 0.3s ease;
+    width: 100%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.test-item:hover {
+    transform: translateY(-5px);
+}
+
+.start-test {
+    display: inline-block;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 25px 50px;
+    font-size: 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.start-test:hover {
+    background-color: #0056b3;
+}
