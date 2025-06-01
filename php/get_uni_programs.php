@@ -1,74 +1,43 @@
 <?php
 header('Content-Type: application/json');
 
-// URL сайта ТулГУ с направлениями
-$url = 'https://abitur71.tsu.tula.ru/admissions/f';
-
-// Загружаем HTML
-$html = @file_get_contents($url);
-if (!$html) {
-    echo json_encode(['error' => 'Не удалось загрузить данные с сайта ТулГУ']);
-    exit;
-}
-
-libxml_use_internal_errors(true);
-$dom = new DOMDocument();
-@$dom->loadHTML($html);
-
-$xpath = new DOMXPath($dom);
-
-// Ищем карточки направлений
-$rows = $xpath->query('//div[@class="single-course"]');
-
-if ($rows->length === 0) {
-    echo json_encode(['error' => 'Направления не найдены. Возможно, изменилась структура сайта.']);
-    exit;
-}
-
-// Фиктивные описания для направлений
-$descriptions = [
-    "09.03.01" => "Подготовка специалистов в области информатики и вычислительной техники.",
-    "09.03.04" => "Разработка программного обеспечения и внедрение цифровых решений.",
-    "15.03.04" => "Инженерия автоматизированных систем и технологий.",
-    "13.03.02" => "Обеспечение надежности и эффективности энергетических систем.",
-    "38.03.02" => "Подготовка управленческих кадров для бизнеса и IT-сферы.",
-    "38.03.01" => "Финансовый анализ, планирование и экономическое моделирование.",
-    "42.03.01" => "Создание рекламных стратегий и управление брендом в цифровой среде."
+// Все нужные нам программы с их URL-ами
+$targetPrograms = [
+    '15.03.01' => 'https://abitur71.tsu.tula.ru/program/15.03.01', 
+    '15.03.05' => 'https://abitur71.tsu.tula.ru/program/15.03.05', 
+    '22.03.01' => 'https://abitur71.tsu.tula.ru/program/22.03.01', 
+    '07.03.01' => 'https://abitur71.tsu.tula.ru/program/07.03.01', 
+    '08.03.01' => 'https://abitur71.tsu.tula.ru/program/08.03.01', 
+    '21.03.01' => 'https://abitur71.tsu.tula.ru/program/21.03.01', 
+    '11.05.01' => 'https://abitur71.tsu.tula.ru/program/11.05.01', 
+    '17.05.01' => 'https://abitur71.tsu.tula.ru/program/17.05.01' 
 ];
 
 $programs = [];
 
-foreach ($rows as $row) {
-    // Находим ссылку внутри блока
-    $linkNode = $xpath->query('.//a', $row)->item(0);
-    if (!$linkNode) continue;
+foreach ($targetPrograms as $code => $url) {
+    $html = @file_get_contents($url);
+    if (!$html) continue;
 
-    $title = trim($linkNode->textContent); // Например: "09.03.01 Информатика и вычислительная техника"
-    $href = trim($linkNode->getAttribute('href'));
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    @$dom->loadHTML($html);
+    $xpath = new DOMXPath($dom);
 
-    // Разделяем на код и название программы
-    if (preg_match('/^(\d+\.\d+\.\d+)\s+(.+)$/', $title, $matches)) {
-        $code = $matches[1];
-        $name = $matches[2];
+    $titleNode = $xpath->query('//h1[@class="entry-title"]')->item(0);
+    $title = trim($titleNode->textContent ?? 'Не найдено');
 
-        // Формируем полную ссылку
-        $fullLink = str_starts_with($href, 'http') ? $href : 'https://abitur71.tsu.tula.ru' . $href;
+    $descriptionNode = $xpath->query('//div[@class="entry-content"]/p[1]')->item(0);
+    $description = trim($descriptionNode->textContent ?? 'Описание временно недоступно.');
 
-        // Берём фиктивное описание или ставим дефолтное
-        $description = $descriptions[$code] ?? 'Описание временно недоступно.';
-        $level = in_array($code, ['09.03.01', '09.03.04']) ? 'Бакалавриат' : 'Специалитет';
-        $form = 'Очная форма обучения';
+    $fullLink = filter_var($url, FILTER_VALIDATE_URL) ? $url : 'https://abitur71.tsu.tula.ru'  . $url;
 
-        $programs[] = [
-            'code' => $code,
-            'name' => $name,
-            'description' => $description,
-            'level' => $level,
-            'form' => $form,
-            'link' => $fullLink
-        ];
-    }
+    $programs[] = [
+        'code' => $code,
+        'name' => $title,
+        'description' => $description,
+        'link' => $fullLink
+    ];
 }
 
 echo json_encode($programs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-?>

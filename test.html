@@ -3,8 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Профориентационный тест</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <style>
+        body {
+            font-size: 20px; /* Увеличенный основной шрифт */
+        }
+
+        .question {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            font-size: 18px;
+        }
+
+        .controls button,
+        .cta-button {
+            font-size: 18px !important;
+            padding: 14px 24px !important;
+            margin-top: 10px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        #test-result {
+            font-size: 22px;
+            color: #003366;
+            margin-top: 30px;
+        }
+
+        #programs-list .test-item {
+            font-size: 18px;
+        }
+
+        canvas#instituteChart {
+            margin-top: 50px;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,149 +70,247 @@
 <!-- Блок с тестом -->
 <section class="test-section">
     <div class="container">
-        <h2 style="font-size: 2rem; margin-bottom: 20px;">Пройдите тест</h2>
-        <p style="margin-bottom: 30px;">Ответьте на несколько вопросов и узнайте свою идеальную профессию.</p>
+        <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Профориентационный тест</h2>
+        <p style="font-size: 1.25rem; margin-bottom: 30px;">Ответьте на вопросы и узнайте, какое направление вам подходит.</p>
 
-        <form id="simple-test-form">
-            <!-- Вопрос 1 -->
-            <div class="question" style="margin-bottom: 20px;">
-                <p style="font-weight: 600;">1. Вам нравится работать с технологиями?</p>
-                <label style="display: block; margin-bottom: 8px;">
-                    <input type="radio" name="q1" value="yes" required> Да
-                </label>
-                <label style="display: block;">
-                    <input type="radio" name="q1" value="no"> Нет
-                </label>
+        <form id="advanced-test-form">
+            <div id="questions-container"></div>
+
+            <div class="controls" style="text-align: center;">
+                <button type="button" id="prev-btn" disabled>← Предыдущие</button>
+                <button type="button" id="next-btn">Следующие →</button>
+                <button type="submit" id="submit-btn" style="display: none; margin-left: 10px;">Получить результат</button>
             </div>
-
-            <!-- Вопрос 2 -->
-            <div class="question" style="margin-bottom: 20px;">
-                <p style="font-weight: 600;">2. Вы предпочитаете работать в команде?</p>
-                <label style="display: block; margin-bottom: 8px;">
-                    <input type="radio" name="q2" value="yes" required> Да
-                </label>
-                <label style="display: block;">
-                    <input type="radio" name="q2" value="no"> Нет
-                </label>
-            </div>
-
-            <!-- Вопрос 3 -->
-            <div class="question" style="margin-bottom: 20px;">
-                <p style="font-weight: 600;">3. Насколько вы любите аналитику?</p>
-                <label style="display: block; margin-bottom: 8px;">
-                    <input type="radio" name="q3" value="high" required> Очень люблю
-                </label>
-                <label style="display: block; margin-bottom: 8px;">
-                    <input type="radio" name="q3" value="medium"> Иногда
-                </label>
-                <label style="display: block;">
-                    <input type="radio" name="q3" value="low"> Не люблю
-                </label>
-            </div>
-
-            <!-- Кнопка -->
-            <button type="submit"
-                    style="background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s;"
-                    onmouseover="this.style.backgroundColor='#0056b3'"
-                    onmouseout="this.style.backgroundColor='#007bff'">
-                Получить результат
-            </button>
         </form>
 
         <!-- Результат -->
-        <div id="test-result" style="margin-top: 30px; font-size: 1.25rem; color: #003366;"></div>
+        <div id="test-result"></div>
 
-        <!-- Блок направлений -->
+        <!-- Подходящие программы -->
         <section id="programs-section" style="display: none; margin-top: 40px;">
-            <h3 style="font-size: 1.5rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
-            <div id="programs-list" style="display: flex; gap: 20px; flex-wrap: wrap;"></div>
+            <h3 style="font-size: 2rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
+            <div id="programs-list" style="display: flex; flex-wrap: wrap; gap: 20px;"></div>
         </section>
+
+        <!-- График -->
+        <div id="chart-section" style="margin-top: 60px; text-align: center; display: none;">
+            <h3 style="font-size: 2rem; margin-bottom: 20px;">Ваш профиль по институтам</h3>
+            <canvas id="instituteChart" width="800" height="400"></canvas>
+        </div>
     </div>
 </section>
 
-<!-- Подвал -->
-<footer class="footer">
-    <div class="container">
-        <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>
-    </div>
-</footer>
-
-<!-- JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('simple-test-form');
+    const form = document.getElementById('advanced-test-form');
+    const container = document.getElementById('questions-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
     const resultDiv = document.getElementById('test-result');
     const programsList = document.getElementById('programs-list');
     const programsSection = document.getElementById('programs-section');
+    const chartSection = document.getElementById('chart-section');
+
+    const questionsPerPage = 10;
+    let currentPage = 0;
+
+    // Все вопросы + привязка к институтам
+    const questions = [
+        { text: "Интересует ли вас изучение физико-химических свойств различных материалов...", institute: "Политехнический институт" },
+        { text: "Готовы ли вы к разработке и совершенствованию технологических процессов получения...", institute: "Политехнический институт" },
+        { text: "Хотели бы вы участвовать в проведении научных исследований...", institute: "Политехнический институт" },
+        { text: "Интересует ли вас проектирование и создание конструкционных материалов...", institute: "Политехнический институт" },
+        { text: "Готовы ли вы к применению современных методов анализа и контроля качества материалов...", institute: "Политехнический институт" },
+
+        { text: "Хотели бы вы участвовать в разработке концептуальных дизайнов...", institute: "Институт горного дела и строительства" },
+        { text: "Интересует ли вас проектирование функциональных интерьеров...", institute: "Институт горного дела и строительства" },
+        { text: "Готовы ли вы глубоко изучать строительные материалы...", institute: "Институт горного дела и строительства" },
+        { text: "Хотели бы вы применять различные методы визуализации...", institute: "Институт горного дела и строительства" },
+        { text: "Интересует ли вас адаптация дизайна к потребностям заказчиков...", institute: "Институт горного дела и строительства" },
+        { text: "Готовы ли вы сотрудничать с другими специалистами...", institute: "Институт горного дела и строительства" },
+        { text: "Хотели бы вы участвовать в процессе строительства...", institute: "Институт горного дела и строительства" },
+        { text: "Интересует ли вас изучение исторических стилей...", institute: "Институт горного дела и строительства" },
+        { text: "Готовы ли вы решать практические задачи...", institute: "Институт горного дела и строительства" },
+        { text: "Хотели бы вы создавать экологичные проектные решения...", institute: "Институт горного дела и строительства" },
+
+        { text: "Хотели бы вы изучать методы математического моделирования...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Интересует ли вас разработка алгоритмов и программного обеспечения...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Готовы ли вы освоить современные технологии программирования...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Хотели бы вы применять методы машинного обучения...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Интересует ли вас анализ и обработка больших массивов данных...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Готовы ли вы изучить методы оптимизации и принятия решений...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Хотели бы вы участвовать в разработке информационных систем...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Интересует ли вас математическое моделирование в экономике...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Готовы ли вы освоить методы визуализации данных...", institute: "Институт прикладной математики и компьютерных наук" },
+        { text: "Хотели бы вы применять методы криптографии и кибербезопасности...", institute: "Институт прикладной математики и компьютерных наук" },
+
+        { text: "Интересует ли вас изучение принципов радиоэлектронных устройств...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Готовы ли вы освоить методы моделирования радиосистем...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Хотели бы вы поучаствовать в разработке новых радиоустройств...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Интересует ли вас исследование помехоустойчивости и надежности...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Готовы ли вы выполнять расчеты технических характеристик...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Хотели бы вы участвовать в настройке и сертификации систем...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Интересует ли вас разработка микропроцессорных систем...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Готовы ли вы к организации технического обслуживания...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Хотели бы вы заниматься технологиями производства компонентов...", institute: "Институт высокоточных систем им. Грязева" },
+        { text: "Интересует ли вас управление радиоэлектронными системами...", institute: "Институт высокоточных систем им. Грязева" }
+    ];
+
+    function shuffle(arr) {
+        return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    const shuffledQuestions = shuffle(questions);
+    const answers = {};
+
+    function renderQuestions(page) {
+        container.innerHTML = '';
+        const start = page * questionsPerPage;
+        const end = start + questionsPerPage;
+        const pageQuestions = shuffledQuestions.slice(start, end);
+
+        pageQuestions.forEach((q, index) => {
+            const qIndex = start + index;
+            const idYes = `q-${qIndex}-yes`;
+            const idNo = `q-${qIndex}-no`;
+
+            const div = document.createElement('div');
+            div.className = 'question';
+
+            div.innerHTML = `
+                <p><strong>${q.text}</strong></p>
+                <label><input type="radio" name="q${qIndex}" id="${idYes}" value="1" ${answers[qIndex] === '1' ? 'checked' : ''}> Да</label><br>
+                <label><input type="radio" name="q${qIndex}" id="${idNo}" value="0" ${answers[qIndex] === '0' ? 'checked' : ''}> Нет</label>
+            `;
+            container.appendChild(div);
+        });
+
+        prevBtn.disabled = (currentPage === 0);
+        nextBtn.style.display = (end < shuffledQuestions.length) ? 'inline-block' : 'none';
+        submitBtn.style.display = (end >= shuffledQuestions.length) ? 'inline-block' : 'none';
+    }
+
+    function saveCurrentAnswers() {
+        const formData = new FormData(form);
+        for (let i = 0; i < shuffledQuestions.length; i++) {
+            const val = formData.get(`q${i}`);
+            if (val !== null) answers[i] = val;
+        }
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) {
+            saveCurrentAnswers();
+            currentPage--;
+            renderQuestions(currentPage);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        saveCurrentAnswers();
+        currentPage++;
+        renderQuestions(currentPage);
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        saveCurrentAnswers();
 
-        const formData = new FormData(form);
-        const data = {};
-        formData.forEach((value, key) => data[key] = value);
+        const scores = {
+            "Политехнический институт": 0,
+            "Институт горного дела и строительства": 0,
+            "Институт прикладной математики и компьютерных наук": 0,
+            "Институт высокоточных систем им. Грязева": 0
+        };
+
+        Object.entries(answers).forEach(([index, value]) => {
+            if (value === '1') {
+                const institute = shuffledQuestions[index].institute;
+                scores[institute]++;
+            }
+        });
+
+        const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
 
         try {
             const response = await fetch('submit_test.php', {
                 method: 'POST',
-                body: new URLSearchParams(data),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers, theme })
             });
-
             const result = await response.json();
 
-            if (result.error) {
-                resultDiv.innerHTML = `<p style="color:red;">${result.error}</p>`;
-                return;
-            }
-
-            // Показываем тематику
-            resultDiv.innerHTML = `<p><strong>Ваша тематика:</strong> ${result.theme || 'не определена'}</p>`;
-
-            // Показываем направления подготовки
+            resultDiv.innerHTML = `<p><strong>Вам подходит:</strong> ${result.theme || 'не определено'}</p>`;
+            programsList.innerHTML = '';
             if (result.programs && result.programs.length > 0) {
                 programsSection.style.display = 'block';
-                programsList.innerHTML = '';
-
                 result.programs.forEach(item => {
                     const program = item.program;
-                    const professions = item.professions.join(', ');
-                    const vacancies = item.vacancies;
-
                     const card = document.createElement('div');
-                    card.style.border = '1px solid #ddd';
-                    card.style.padding = '20px';
-                    card.style.marginBottom = '30px';
-                    card.style.background = '#fff';
-                    card.style.borderRadius = '8px';
-
+                    card.className = 'test-item';
                     card.innerHTML = `
-                        <h4>${program.code} — ${program.name}</h4>
-                        <p><strong>Подходящие профессии:</strong> ${professions}</p>
+                        <h4 style="font-size: 1.25rem;">${program.code} — ${program.name}</h4>
+                        <p><strong>Подходящие профессии:</strong> ${item.professions.join(', ')}</p>
                         <hr>
-                        <h5>Подходящие вакансии:</h5>
-                        <ul style="list-style: none; padding-left: 0;">
-                            ${vacancies.map(v => `
-                                <li style="margin-bottom: 10px;">
-                                    <a href="${v.url}" target="_blank">${v.title}</a><br>
-                                    Работодатель: ${v.employer}<br>
-                                    Зарплата: ${v.salary}
-                                </li>
-                            `).join('')}
+                        <h5 style="font-size: 1.15rem;">Подходящие вакансии:</h5>
+                        <ul style="list-style: disc inside; padding-left: 0;">
+                            ${item.vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}</a>, ${v.employer}, ${v.salary}</li>`).join('')}
                         </ul>
                     `;
-
                     programsList.appendChild(card);
                 });
             } else {
                 programsSection.style.display = 'none';
             }
 
+            // Построение графика
+            const ctx = document.getElementById('instituteChart').getContext('2d');
+
+            const chartData = {
+                labels: Object.keys(scores),
+                datasets: [{
+                    label: 'Баллы по институтам',
+                    data: Object.values(scores),
+                    backgroundColor: '#007bff'
+                }]
+            };
+
+            if (window.myChartInstance) {
+                window.myChartInstance.destroy();
+            }
+
+            window.myChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: context => `${context.parsed.y} баллов`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+
+            chartSection.style.display = 'block';
+
         } catch (err) {
             console.error("Ошибка:", err);
             resultDiv.innerHTML = `<p style="color:red;">Ошибка при загрузке данных</p>`;
         }
     });
+
+    renderQuestions(currentPage);
 });
 </script>
 
