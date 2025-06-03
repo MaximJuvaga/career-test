@@ -58,27 +58,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
 
-    // Проверяем авторизацию
-    fetch('auth_check.php').then(response => {
-        if (!response.ok) window.location.href = 'login.html';
-        return response.json();
-    }).catch(() => {
+    // Проверяем localStorage
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+        console.log('localStorage пустой — редирект на login.html');
         window.location.href = 'login.html';
-    });
+        return;
+    }
 
-    // Получаем логин
-    fetch('get_user_data.php')
-        .then(res => res.json())
-        .then(data => {
-            if (data.login) {
-                userLoginSpan.textContent = `Добро пожаловать, ${data.login}`;
+    const userData = JSON.parse(storedUser);
+    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+
+    // Проверяем сессию через auth_check.php
+    fetch('auth_check.php')
+        .then(response => {
+            if (!response.ok) {
+                console.warn('auth_check.php вернул ошибку — очищаем localStorage');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
             }
+        })
+        .catch(err => {
+            console.error('Ошибка при проверке авторизации:', err);
+            alert('Произошла ошибка проверки авторизации. Пожалуйста, войдите снова.');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         });
 
-    // Кнопка выхода
+    // Выход
     logoutBtn.addEventListener('click', async () => {
         const response = await fetch('logout.php');
-        if (response.ok) window.location.href = 'login.html';
+        if (response.ok) {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
     });
 });
 </script>
