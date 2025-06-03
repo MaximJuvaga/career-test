@@ -16,9 +16,12 @@
             <ul>
                 <li><a href="index.html">На главную</a></li>
                 <li><a href="test.html">Пройти тест</a></li>
-                <li><a href="#">Направления обучения</a></li> 
             </ul>
         </nav>
+        <div class="user-menu">
+            <span id="user-login"></span>
+            <button id="logout-button">Выйти</button>
+        </div>
     </div>
 </header>
 
@@ -40,7 +43,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const programsList = document.getElementById('programs-list');
+    const userLoginSpan = document.getElementById('user-login');
+    const logoutBtn = document.getElementById('logout-button');
+
+    // Проверяем localStorage
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const userData = JSON.parse(storedUser);
+    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+
+    // Выход
+    logoutBtn.addEventListener('click', async () => {
+        const response = await fetch('logout.php');
+        if (response.ok) {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    });
 
     // Список названий направлений
     const programNames = {
@@ -54,11 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "17.05.01": "Специальные системы обеспечения движения поездов"
     };
 
+    // Загружаем программы
+    const programsList = document.getElementById('programs-list');
     fetch('php/get_uni_programs.php')
-        .then(response => {
-            if (!response.ok) throw new Error("HTTP error: " + response.status);
-            return response.json();
-        })
+        .then(res => res.json())
         .then(programs => {
             if (!programs.length) {
                 programsList.innerHTML = '<p>Нет доступных направлений</p>';
@@ -66,15 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             programs.forEach(program => {
-                // Если название не найдено — берем из списка
-                let name = program.name === 'Не найдено' && program.code in programNames
-                    ? programNames[program.code]
-                    : program.name;
-
                 const card = document.createElement('div');
                 card.className = 'test-item';
                 card.style = `
-                    border: 1px solid #ddd;
+                    border: 1px solid #ddd; 
                     padding: 25px;
                     margin-bottom: 20px;
                     border-radius: 8px;
@@ -85,21 +102,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     font-size: 18px;
                     display: flex;
                     align-items: center;
+                    justify-content: space-between;
                 `;
                 card.onmouseover = () => card.style.transform = 'translateY(-5px)';
                 card.onmouseout = () => card.style.transform = 'translateY(0)';
+                
+                let name = program.name === 'Не найдено' && program.code in programNames
+                    ? programNames[program.code]
+                    : program.name;
 
                 card.innerHTML = `
                     <h4 style="font-size: 20px; margin: 0; flex: 1;"><strong>${program.code}</strong> — ${name}</h4>
                     <a href="${program.link}" target="_blank" style="color: #007bff; white-space: nowrap;">Подробнее →</a>
                 `;
-
                 programsList.appendChild(card);
             });
         })
-        .catch(error => {
-            console.error("Ошибка:", error);
-            programsList.innerHTML = '<p style="color:red;">Ошибка при загрузке данных о направлениях.</p>';
+        .catch(err => {
+            console.error("Ошибка:", err);
+            programsList.innerHTML = '<p style="color:red;">Ошибка загрузки данных о направлениях</p>';
         });
 });
 </script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Войти</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Шапка -->
+<header class="header">
+    <div class="container">
+        <div class="logo">Карьера: Твой путь</div>
+    </div>
+</header>
+
+<!-- Форма входа -->
+<section class="form-section">
+    <div class="container">
+        <h2>Войдите в систему</h2>
+        <form id="login-form">
+            <input type="text" name="login" placeholder="Логин" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+        <p>Нет аккаунта? <a href="register.html">Зарегистрируйтесь</a></p>
+    </div>
+</section>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const response = await fetch('login.php', {
+        method: 'POST',
+        body: formData
+    });
+    const result = await response.json();
+
+    if (result.success) {
+        localStorage.setItem('user', JSON.stringify({
+            login: formData.get('login'),
+            role: result.role
+        }));
+        window.location.href = 'profile.html?role=' + result.role;
+    } else {
+        alert(result.error);
+    }
+});
+</script>
+
+</body>
+</html>

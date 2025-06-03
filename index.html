@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карьерная траектория</title>
+    <title>Карьера: Твой путь</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="js/auth.js"></script>
 </head>
 <body>
 
@@ -20,13 +20,17 @@
                 <li><a href="programs.html">Направления обучения</a></li>
             </ul>
         </nav>
+        <div class="user-menu">
+            <span id="user-login"></span>
+            <button id="logout-button">Выйти</button>
+        </div>
     </div>
 </header>
 
 <!-- Главный блок -->
 <section class="hero">
     <div class="container">
-        <h1 style="font-size: 48px; margin-bottom: 20px; color: #007bff;">Найдите свою карьерную траекторию</h1>
+        <h1 style="font-size: 48px; margin-bottom: 20px; color: #007bff;">Найдите свою карьерную траекторию</h1> 
         <a href="test.html" class="start-test">Начать тест</a>
     </div>
 </section>
@@ -47,6 +51,36 @@
         <a href="#">Пользовательское соглашение</a>
     </div>
 </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const userLoginSpan = document.getElementById('user-login');
+    const logoutBtn = document.getElementById('logout-button');
+
+    // Проверяем авторизацию
+    fetch('auth_check.php').then(response => {
+        if (!response.ok) window.location.href = 'login.html';
+        return response.json();
+    }).catch(() => {
+        window.location.href = 'login.html';
+    });
+
+    // Получаем логин
+    fetch('get_user_data.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.login) {
+                userLoginSpan.textContent = `Добро пожаловать, ${data.login}`;
+            }
+        });
+
+    // Кнопка выхода
+    logoutBtn.addEventListener('click', async () => {
+        const response = await fetch('logout.php');
+        if (response.ok) window.location.href = 'login.html';
+    });
+});
+</script>
 
 </body>
 </html>
