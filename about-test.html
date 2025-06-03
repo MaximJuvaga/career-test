@@ -48,7 +48,7 @@
             <ul>
                 <li><a href="index.html">На главную</a></li>
                 <li><a href="test.html">Пройти тест</a></li>
-                <li><a href="programs.html">Направления обучения</a></li>
+                <li><a href="profile.html">Личный кабинет</a></li>
             </ul>
         </nav>
         <div class="user-menu">
@@ -62,7 +62,7 @@
 <section class="about-section">
     <div class="container">
         <h2>Что такое наш профориентационный тест?</h2>
-        <p>Этот тест поможет определить вашу карьерную траекторию, основываясь на ваших интересах, навыках и предпочтениях. Мы разработали его так, чтобы он был не только точным, но и удобным для пользователей любого возраста.</p>
+        <p>Этот тест поможет вам определить вашу карьерную траекторию, основываясь на ваших интересах, навыках и предпочтениях. Мы разработали его так, чтобы он был не только точным, но и удобным для пользователей любого возраста.</p>
         <p>Прохождение занимает всего несколько минут, а результаты помогут вам лучше понять, какие направления обучения и профессии могут вам подойти.</p>
 
         <div class="features">
@@ -115,25 +115,26 @@
     </div>
 </footer>
 
+<script src="js/auth.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('user');
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
 
-    // Проверяем localStorage
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
+    if (!storedUser && window.location.pathname.includes('profile')) {
         window.location.href = 'login.html';
         return;
     }
 
-    const userData = JSON.parse(storedUser);
-    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    }
 
-    // Выход
     logoutBtn.addEventListener('click', async () => {
-        const response = await fetch('logout.php');
-        if (response.ok) {
+        const res = await fetch('logout.php');
+        if (res.ok) {
             localStorage.removeItem('user');
             window.location.href = 'login.html';
         }

@@ -16,6 +16,7 @@
             <ul>
                 <li><a href="index.html">На главную</a></li>
                 <li><a href="test.html">Пройти тест</a></li>
+                <li><a href="profile.html">Личный кабинет</a></li>
             </ul>
         </nav>
         <div class="user-menu">
@@ -41,29 +42,32 @@
     </div>
 </footer>
 
+<script src="js/auth.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('user');
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
 
-    // Проверяем localStorage
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
+    if (!storedUser && window.location.pathname.includes('profile')) {
         window.location.href = 'login.html';
         return;
     }
 
-    const userData = JSON.parse(storedUser);
-    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    }
 
-    // Выход
     logoutBtn.addEventListener('click', async () => {
-        const response = await fetch('logout.php');
-        if (response.ok) {
+        const res = await fetch('logout.php');
+        if (res.ok) {
             localStorage.removeItem('user');
             window.location.href = 'login.html';
         }
     });
+
+    const programsList = document.getElementById('programs-list');
 
     // Список названий направлений
     const programNames = {
@@ -77,8 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "17.05.01": "Специальные системы обеспечения движения поездов"
     };
 
-    // Загружаем программы
-    const programsList = document.getElementById('programs-list');
     fetch('php/get_uni_programs.php')
         .then(res => res.json())
         .then(programs => {
@@ -98,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     background: #fff;
                     transition: transform 0.3s ease;
                     width: 100%;
-                    max-width: 100%;
                     font-size: 18px;
                     display: flex;
                     align-items: center;
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 card.onmouseover = () => card.style.transform = 'translateY(-5px)';
                 card.onmouseout = () => card.style.transform = 'translateY(0)';
-                
+
                 let name = program.name === 'Не найдено' && program.code in programNames
                     ? programNames[program.code]
                     : program.name;

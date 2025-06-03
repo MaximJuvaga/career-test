@@ -11,6 +11,18 @@
 <header class="header">
     <div class="container">
         <div class="logo">Карьера: Твой путь</div>
+        <nav class="nav">
+            <ul>
+                <li><a href="index.html">Главная</a></li>
+                <li><a href="about-test.html">О тесте</a></li>
+                <li><a href="test.html">Пройти тест</a></li>
+                <li><a href="profile.html">Личный кабинет</a></li>
+            </ul>
+        </nav>
+        <div class="user-menu">
+            <span id="user-login"></span>
+            <button id="logout-button">Выйти</button>
+        </div>
     </div>
 </header>
 
@@ -42,9 +54,34 @@ document.getElementById('login-form').addEventListener('submit', async function(
             login: formData.get('login'),
             role: result.role
         }));
-        window.location.href = 'profile.html?role=' + result.role;
+        window.location.href = 'index.html';
     } else {
         alert(result.error);
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('user');
+    const userLoginSpan = document.getElementById('user-login');
+    const logoutBtn = document.getElementById('logout-button');
+
+    if (!storedUser && window.location.pathname.includes('profile')) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+        logoutBtn.addEventListener('click', async () => {
+            const res = await fetch('logout.php');
+            if (res.ok) {
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        });
     }
 });
 </script>

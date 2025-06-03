@@ -79,8 +79,19 @@
             background-color: #007bff;
             border-color: #007bff;
         }
-        .cta-button,
-        .controls button {
+        .custom-radio input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .controls button,
+        .cta-button {
             font-size: 18px !important;
             padding: 14px 24px !important;
             margin-top: 10px;
@@ -96,6 +107,9 @@
         <nav class="nav">
             <ul>
                 <li><a href="index.html">На главную</a></li>
+                <li><a href="about-test.html">О тесте</a></li>
+                <li><a href="test.html">Тест</a></li>
+                <li><a href="profile.html">Личный кабинет</a></li>
             </ul>
         </nav>
         <div class="user-menu">
@@ -135,29 +149,31 @@
 <script src="js/auth.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
+    const storedUser = localStorage.getItem('user');
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
 
-    // Проверяем localStorage
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
+    if (!storedUser && window.location.pathname.includes('profile')) {
         window.location.href = 'login.html';
         return;
     }
 
-    const userData = JSON.parse(storedUser);
-    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    // Отображаем логин
+    if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
+    }
 
     // Выход
     logoutBtn.addEventListener('click', async () => {
-        const response = await fetch('logout.php');
-        if (response.ok) {
+        const res = await fetch('logout.php');
+        if (res.ok) {
             localStorage.removeItem('user');
             window.location.href = 'login.html';
         }
     });
 
-    // Логика теста — оставляем без изменений
+    // Логика теста
     const form = document.getElementById('advanced-test-form');
     const container = document.getElementById('questions-container');
     const prevBtn = document.getElementById('prev-btn');
@@ -227,12 +243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             div.className = 'question';
             div.innerHTML = `
                 <p><strong>${q.text}</strong></p>
-                <label for="${idYes}">
-                    <input type="radio" name="q${qIndex}" id="${idYes}" value="1"> Да
-                </label>
-                <label for="${idNo}">
-                    <input type="radio" name="q${qIndex}" id="${idNo}" value="0"> Нет
-                </label>
+                <label for="${idYes}"><input type="radio" name="q${qIndex}" id="${idYes}" value="1"> Да</label>
+                <label for="${idNo}"><input type="radio" name="q${qIndex}" id="${idNo}" value="0"> Нет</label>
             `;
             container.appendChild(div);
         });
@@ -312,7 +324,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
                 programsList.appendChild(card);
             });
-
             programsSection.style.display = 'block';
 
             const ctx = document.getElementById('instituteChart').getContext('2d');

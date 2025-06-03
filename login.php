@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'login' => $user['login'],
                 'role' => $user['role']
             ];
-            echo json_encode(['success' => true, 'role' => $user['role'], 'login' => $user['login']]);
+            echo json_encode(['success' => true, 'role' => $user['role']]);
         } else {
             echo json_encode(['success' => false, 'error' => 'Неверный логин или пароль']);
         }

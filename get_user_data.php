@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
 $userId = $_SESSION['user']['id'];
 
 try {
-    $stmt = $pdo->prepare("SELECT id, login, role FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
