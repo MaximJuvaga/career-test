@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
 <!-- Шапка -->
 <header class="header">
     <div class="container">
@@ -30,6 +29,19 @@
     <div class="container">
         <h2 id="profile-title">Личный кабинет</h2>
         <div id="user-info"></div>
+
+        <!-- Форма фильтрации (только для преподавателя) -->
+        <div id="filters" style="display: none;">
+            <h3>Фильтр</h3>
+            <form id="filter-form">
+                <input type="text" name="login" placeholder="Логин абитуриента">
+                <input type="date" name="date">
+                <input type="text" name="institute" placeholder="Институт">
+                <button type="submit">Найти</button>
+            </form>
+        </div>
+
+        <!-- Результаты тестов -->
         <div id="test-results"></div>
     </div>
 </section>
@@ -38,74 +50,10 @@
 <footer class="footer">
     <div class="container">
         <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>
-        <a href="#">Политика конфиденциальности</a>
-        <a href="#">Пользовательское соглашение</a>
     </div>
 </footer>
 
 <script src="js/auth.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-    const storedUser = localStorage.getItem('user');
-    const userLoginSpan = document.getElementById('user-login');
-    const logoutBtn = document.getElementById('logout-button');
-    const profileTitle = document.getElementById('profile-title');
-    const userInfoDiv = document.getElementById('user-info');
-    const testResultsDiv = document.getElementById('test-results');
-
-    if (!storedUser) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    const userData = JSON.parse(storedUser);
-    userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
-    profileTitle.textContent = userData.role === 'abiturient' ? 'Личный кабинет абитуриента' : 'Личный кабинет преподавателя';
-
-    try {
-        const response = await fetch('get_user_data.php');
-        const data = await response.json();
-
-        if (data.error) throw new Error("Ошибка сервера");
-
-        // Отображаем информацию о пользователе
-        userInfoDiv.innerHTML = `
-            <p><strong>Логин:</strong> ${data.login}</p>
-            <p><strong>Роль:</strong> ${data.role === 'abiturient' ? 'Абитуриент' : 'Преподаватель'}</p>
-        `;
-
-        // Загружаем результаты теста
-        const resultsResponse = await fetch(`get_test_results.php?user_id=${data.id}`);
-        const resultsData = await resultsResponse.json();
-
-        if (resultsData.length === 0) {
-            testResultsDiv.innerHTML = '<p>Вы ещё не проходили тест.</p>';
-        } else {
-            let html = '<h3>Ваши результаты:</h3>';
-            resultsData.forEach(r => {
-                const parsedResult = JSON.parse(r.result_json);
-                html += `<div><p><strong>Тема:</strong> ${parsedResult.theme || 'Не определено'}</p>`;
-                html += `<p><strong>Дата:</strong> ${r.created_at}</p></div>`;
-            });
-            testResultsDiv.innerHTML = html;
-        }
-
-    } catch (err) {
-        console.error("Ошибка загрузки данных", err);
-        localStorage.removeItem('user');
-        window.location.href = 'login.html';
-    }
-
-    // Кнопка выхода
-    logoutBtn.addEventListener('click', async () => {
-        const res = await fetch('logout.php');
-        if (res.ok) {
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        }
-    });
-});
-</script>
-
+<script src="js/profile.js"></script>
 </body>
 </html>
