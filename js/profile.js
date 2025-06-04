@@ -29,71 +29,84 @@ document.addEventListener('DOMContentLoaded', async () => {
             <p><strong>Роль:</strong> ${data.role === 'abiturient' ? 'Абитуриент' : 'Преподаватель'}</p>
         `;
 
+        // === Личный кабинет Абитуриента ===
         if (data.role === 'abiturient') {
-        const filtersAbiturient = document.getElementById('filters-abiturient');
-        const filterForm = document.getElementById('filter-form-abiturient');
-        const resetButton = document.getElementById('reset-filter');
-        const testResultsDiv = document.getElementById('test-results');
+    const resultsResponse = await fetch(`get_test_results.php?user_id=${userData.id}`);
+    const resultsData = await resultsResponse.json();
 
-        filtersAbiturient.style.display = 'block';
+    testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
 
-        const loadResults = async (filters = {}) => {
-            let url = `get_test_results.php?user_id=${data.id}`;
-            if (filters.date) url += `&date=${filters.date}`;
-            if (filters.institute) url += `&institute=${filters.institute}`;
+    if (resultsData.length === 0) {
+        testResultsDiv.innerHTML += '<p>Вы ещё не проходили тест.</p>';
+        return;
+    }
 
-            const resultsResponse = await fetch(url);
-            const resultsData = await resultsResponse.json();
+    resultsData.forEach(result => {
+        const parsedResult = JSON.parse(result.result_json);
+        const institute = parsedResult.theme || 'Не определено';
+        const programs = parsedResult.programs || [];
+        const vacanciesByProgram = parsedResult.vacancies_by_program || [];
 
-            testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
+        // Создаем контейнер для всех программ
+        const programsContainer = document.createElement('div');
+        programsContainer.className = 'programs-container';
 
-            if (resultsData.length === 0) {
-                testResultsDiv.innerHTML += '<p>Нет результатов по заданным критериям.</p>';
-                return;
-            }
+        programs.forEach(program => {
+            const programCode = program.code;
+            const programName = program.name;
 
-            resultsData.forEach(result => {
-                const parsedResult = JSON.parse(result.result_json);
-                const institute = parsedResult.theme || 'Не определено';
-                const programs = parsedResult.programs || [];
-                const vacancies = parsedResult.vacancies || [];
+            // Находим вакансии для текущего направления
+            const programVacancies = vacanciesByProgram.find(item => item.program.code === programCode)?.vacancies || [];
 
-                const card = document.createElement('div');
-                card.className = 'test-item';
+            const card = document.createElement('div');
+            card.className = 'program-card';
 
-                card.innerHTML = `
-                    <p><strong>Институт:</strong> ${institute}</p>
-                    <p><strong>Дата:</strong> ${result.created_at}</p>
-                    <p><strong>Направления:</strong></p>
-                    <ul>${programs.map(p => `<li>${p.code} — ${p.name}</li>`).join('')}</ul>
-                    <p><strong>Вакансии:</strong></p>
-                    <ul>${vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`).join('')}</ul>
-                    <hr>
-                `;
+            card.innerHTML = `
+                <h4>${programCode} — ${programName}</h4>
+                <p><strong>Подходящие профессии:</strong> ${
+                    parsedResult.professions[programCode]?.join(', ') || 'Не указано'
+                }</p>
+                <hr>
+                <p><strong>Подходящие вакансии:</strong></p>
+                <ul>
+                    ${programVacancies.map(v => 
+                        `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`
+                    ).join('')}
+                </ul>
+            `;
 
-                testResultsDiv.appendChild(card);
-            });
-    };
+            card.style = `
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                background: #fff;
+                transition: transform 0.3s ease;
+                width: calc(33.33% - 20px); /* 3 колонки */
+                box-sizing: border-box;
+            `;
 
-    // Загрузка без фильтров при открытии
-    loadResults();
+            programsContainer.appendChild(card);
+        });
 
-    // Применение фильтров
-    filterForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(filterForm);
-        const date = formData.get('date');
-        const institute = formData.get('institute');
-        loadResults({ date, institute });
-    });
+        // Добавляем блок с институтом и датой
+        const card = document.createElement('div');
+        card.className = 'test-item';
 
-    // Сброс фильтров
-    resetButton.addEventListener('click', () => {
-        filterForm.reset();
-        loadResults({});
+        card.innerHTML = `
+            <p><strong>Институт:</strong> ${institute}</p>
+            <p><strong>Дата:</strong> ${result.created_at}</p>
+        `;
+
+        card.appendChild(programsContainer);
+
+        testResultsDiv.appendChild(card);
     });
 }
 
+        // === Личный кабинет Преподавателя (без изменений) ===
         if (data.role === 'teacher') {
             filtersDiv.style.display = 'block';
 
@@ -121,7 +134,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <p><strong>Направления:</strong></p>
                         <ul>${r.programs.map(p => `<li>${p.code} — ${p.name}</li>`).join('')}</ul>
                         <p><strong>Вакансии:</strong></p>
-                        <ul>${r.vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`).join('')}</ul>
+                        <ul>${r.vacancies.map(v => 
+                            `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`
+                        ).join('')}</ul>
                         <hr>
                     `;
                     testResultsDiv.appendChild(card);
@@ -133,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 applyFilters();
             });
 
-            applyFilters(); // Загружаем все данные при загрузке
+            applyFilters(); // Загружаем данные при открытии
         }
 
     } catch (err) {

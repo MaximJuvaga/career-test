@@ -1,6 +1,5 @@
 <?php
 require_once 'db.php';
-
 session_start();
 
 if (!isset($_SESSION['user'])) {
@@ -10,8 +9,8 @@ if (!isset($_SESSION['user'])) {
 
 $userId = $_SESSION['user']['id'];
 $data = json_decode(file_get_contents('php://input'), true);
-$answers = $data['answers'];
-$theme = $data['theme'];
+$answers = $data['answers'] ?? [];
+$theme = $data['theme'] ?? null;
 
 // Программы по институтам
 $programsMapping = [
@@ -52,11 +51,16 @@ $professionsMapping = [
 ];
 
 function getVacancies($profession) {
+    if (empty($profession)) return [];
+
     $url = "https://api.hh.ru/vacancies?text=" . urlencode($profession) . "&area=113&per_page=5";
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['User-Agent: CareerTestBot']);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Отладка — временно
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
     $response = curl_exec($ch);
     curl_close($ch);
 
@@ -77,37 +81,49 @@ function getVacancies($profession) {
         }
 
         $vacancies[] = [
-            'title' => $item['name'],
+            'title' => $item['name'] ?? '',
             'employer' => $item['employer']['name'] ?? 'Не указан',
             'salary' => $salary,
-            'url' => $item['alternate_url']
+            'url' => $item['alternate_url'] ?? '#' 
         ];
     }
 
     return $vacancies;
 }
 
-// Сохраняем результат
 try {
+    // Формируем JSON с вакансиями по каждой программе
+    $programsWithVacancies = array_map(function($program) use ($professionsMapping) {
+        $firstProfession = $professionsMapping[$program['code']][0] ?? '';
+        return [
+            'program' => $program,
+            'professions' => $professionsMapping[$program['code']] ?? ['Профессия не определена'],
+            'vacancies' => $firstProfession ? getVacancies($firstProfession) : []
+        ];
+    }, $programsMapping[$theme] ?? []);
+
+    // Сохраняем результат в БД
     $stmt = $pdo->prepare("INSERT INTO test_results (user_id, result_json) VALUES (?, ?)");
     $stmt->execute([$userId, json_encode([
-        'theme' => $theme,
+        'theme' => $theme ?: 'Не определено',
         'programs' => $programsMapping[$theme] ?? [],
         'professions' => $professionsMapping,
-        'vacancies' => !empty($professionsMapping[$theme]) ? getVacancies($professionsMapping[$theme][0]) : []
-    ])]);
+        'vacancies_by_program' => $programsWithVacancies
+    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)]);
+
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Ошибка сервера']);
     exit;
 }
 
 echo json_encode([
-    'theme' => $theme,
-    'programs' => array_map(function($program) use ($professionsMapping, $theme) {
+    'theme' => $theme ?: 'Не определено',
+    'programs' => array_map(function($program) use ($professionsMapping) {
+        $firstProfession = $professionsMapping[$program['code']][0] ?? '';
         return [
             'program' => $program,
             'professions' => $professionsMapping[$program['code']] ?? ['Профессия не определена'],
-            'vacancies' => getVacancies($professionsMapping[$program['code']][0] ?? '')
+            'vacancies' => $firstProfession ? getVacancies($firstProfession) : []
         ];
     }, $programsMapping[$theme] ?? [])
 ]);
