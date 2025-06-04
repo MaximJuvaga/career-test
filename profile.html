@@ -15,6 +15,7 @@
                 <li><a href="index.html">На главную</a></li>
                 <li><a href="about-test.html">О тесте</a></li>
                 <li><a href="test.html">Пройти тест</a></li>
+                <li><a href="programs.html">Направления обучения</a></li>
             </ul>
         </nav>
         <div class="user-menu">
@@ -28,11 +29,20 @@
 <section class="profile-section">
     <div class="container">
         <h2 id="profile-title">Личный кабинет</h2>
+        <div id="filters-abiturient" style="display: none;">
+            <h3>Фильтр результатов</h3>
+                <form id="filter-form-abiturient">
+                    <input type="date" name="date" />
+                    <input type="text" name="institute" placeholder="Институт" />
+                    <button type="submit">Применить</button>
+                    <button type="button" id="reset-filter">Сбросить</button>
+                </form>
+            </div>
         <div id="user-info"></div>
 
         <!-- Форма фильтрации (только для преподавателя) -->
         <div id="filters" style="display: none;">
-            <h3>Фильтр</h3>
+            <h3>Фильтр результатов</h3>
             <form id="filter-form">
                 <input type="text" name="login" placeholder="Логин абитуриента">
                 <input type="date" name="date">

@@ -30,23 +30,69 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
 
         if (data.role === 'abiturient') {
-            const resultsResponse = await fetch(`get_test_results.php?user_id=${data.id}`);
+        const filtersAbiturient = document.getElementById('filters-abiturient');
+        const filterForm = document.getElementById('filter-form-abiturient');
+        const resetButton = document.getElementById('reset-filter');
+        const testResultsDiv = document.getElementById('test-results');
+
+        filtersAbiturient.style.display = 'block';
+
+        const loadResults = async (filters = {}) => {
+            let url = `get_test_results.php?user_id=${data.id}`;
+            if (filters.date) url += `&date=${filters.date}`;
+            if (filters.institute) url += `&institute=${filters.institute}`;
+
+            const resultsResponse = await fetch(url);
             const resultsData = await resultsResponse.json();
+
+            testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
+
             if (resultsData.length === 0) {
-                testResultsDiv.innerHTML = '<p>Вы ещё не проходили тест.</p>';
-            } else {
-                testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
-                resultsData.forEach(result => {
-                    const parsedResult = JSON.parse(result.result_json);
-                    const theme = parsedResult.theme || 'Не определено';
-                    testResultsDiv.innerHTML += `
-                        <div>
-                            <p><strong>Тема:</strong> ${theme}</p>
-                            <p><strong>Дата:</strong> ${result.created_at}</p>
-                        </div>`;
-                });
+                testResultsDiv.innerHTML += '<p>Нет результатов по заданным критериям.</p>';
+                return;
             }
-        }
+
+            resultsData.forEach(result => {
+                const parsedResult = JSON.parse(result.result_json);
+                const institute = parsedResult.theme || 'Не определено';
+                const programs = parsedResult.programs || [];
+                const vacancies = parsedResult.vacancies || [];
+
+                const card = document.createElement('div');
+                card.className = 'test-item';
+
+                card.innerHTML = `
+                    <p><strong>Институт:</strong> ${institute}</p>
+                    <p><strong>Дата:</strong> ${result.created_at}</p>
+                    <p><strong>Направления:</strong></p>
+                    <ul>${programs.map(p => `<li>${p.code} — ${p.name}</li>`).join('')}</ul>
+                    <p><strong>Вакансии:</strong></p>
+                    <ul>${vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`).join('')}</ul>
+                    <hr>
+                `;
+
+                testResultsDiv.appendChild(card);
+            });
+    };
+
+    // Загрузка без фильтров при открытии
+    loadResults();
+
+    // Применение фильтров
+    filterForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(filterForm);
+        const date = formData.get('date');
+        const institute = formData.get('institute');
+        loadResults({ date, institute });
+    });
+
+    // Сброс фильтров
+    resetButton.addEventListener('click', () => {
+        filterForm.reset();
+        loadResults({});
+    });
+}
 
         if (data.role === 'teacher') {
             filtersDiv.style.display = 'block';
