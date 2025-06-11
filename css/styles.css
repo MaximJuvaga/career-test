@@ -487,3 +487,77 @@ body {
     text-decoration: underline;
 }
 
+.program-card {
+    flex: 1 1 calc(33.33% - 20px);
+    min-width: 250px;
+    background: #f9f9f9;
+    border: 1px solid #e4e4e4;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.program-card h4 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    text-align: center;
+}
+
+.program-card p {
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.program-card ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 8px;
+}
+
+.program-card li {
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+.program-card a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.program-card a:hover {
+    text-decoration: underline;
+}
+
+#chart-section canvas {
+    max-width: 100%;
+    height: 300px !important;
+    margin-top: 20px;
+}
+#chart-section {
+    margin-top: 60px;
+    text-align: center;
+    display: none;
+}
+
+#chart-section canvas {
+    max-width: 100%;
+    height: 300px !important;
+    width: auto !important;
+    margin: 0 auto;
+}
+
+#instituteChartWrapper {
+    width: 100%;
+    height: 300px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#instituteChart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}

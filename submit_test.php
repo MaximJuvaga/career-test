@@ -52,15 +52,13 @@ $professionsMapping = [
 
 function getVacancies($profession) {
     if (empty($profession)) return [];
-
-    $url = "https://api.hh.ru/vacancies?text=" . urlencode($profession) . "&area=113&per_page=5";
+    $url = "https://api.hh.ru/vacancies?text=" . urlencode($profession) . "&area=113&per_page=2";
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['User-Agent: CareerTestBot']);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Отладка — временно
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
     $response = curl_exec($ch);
     curl_close($ch);
 
@@ -88,26 +86,35 @@ function getVacancies($profession) {
         ];
     }
 
-    return $vacancies;
+    return array_slice($vacancies, 0, 2); // Ограничиваем до 2 вакансий
 }
 
 try {
-    // Формируем JSON с вакансиями по каждой программе
-    $programsWithVacancies = array_map(function($program) use ($professionsMapping) {
-        $firstProfession = $professionsMapping[$program['code']][0] ?? '';
+    // Берём все 3 программы из выбранного института
+    $programsToSave = $programsMapping[$theme] ?? [];
+
+    // Формируем данные для сохранения
+    $programsWithVacancies = array_map(function ($program) use ($professionsMapping) {
+        $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
+        $vacanciesByProfession = [];
+
+        foreach ($allProfessions as $profession) {
+            $vacanciesByProfession[$profession] = getVacancies($profession);
+        }
+
         return [
             'program' => $program,
-            'professions' => $professionsMapping[$program['code']] ?? ['Профессия не определена'],
-            'vacancies' => $firstProfession ? getVacancies($firstProfession) : []
+            'professions' => $allProfessions,
+            'vacancies_by_profession' => $vacanciesByProfession
         ];
-    }, $programsMapping[$theme] ?? []);
+    }, $programsToSave);
 
     // Сохраняем результат в БД
     $stmt = $pdo->prepare("INSERT INTO test_results (user_id, result_json) VALUES (?, ?)");
     $stmt->execute([$userId, json_encode([
         'theme' => $theme ?: 'Не определено',
-        'programs' => $programsMapping[$theme] ?? [],
-        'professions' => $professionsMapping,
+        'programs' => $programsToSave,
+        'professions_mapping' => $professionsMapping,
         'vacancies_by_program' => $programsWithVacancies
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)]);
 
@@ -118,12 +125,18 @@ try {
 
 echo json_encode([
     'theme' => $theme ?: 'Не определено',
-    'programs' => array_map(function($program) use ($professionsMapping) {
-        $firstProfession = $professionsMapping[$program['code']][0] ?? '';
+    'programs' => array_map(function ($program) use ($professionsMapping) {
+        $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
+        $vacanciesByProfession = [];
+
+        foreach ($allProfessions as $profession) {
+            $vacanciesByProfession[$profession] = getVacancies($profession);
+        }
+
         return [
             'program' => $program,
-            'professions' => $professionsMapping[$program['code']] ?? ['Профессия не определена'],
-            'vacancies' => $firstProfession ? getVacancies($firstProfession) : []
+            'professions' => $allProfessions,
+            'vacancies_by_profession' => $vacanciesByProfession
         ];
     }, $programsMapping[$theme] ?? [])
 ]);

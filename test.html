@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Профориентационный тест</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <style>
         .question {
@@ -26,8 +26,8 @@
             color: #003366;
             margin-top: 30px;
         }
-        #programs-list .test-item {
-            font-size: 18px;
+        #programs-list .program-card {
+            font-size: 16px;
         }
         canvas#instituteChart {
             margin-top: 50px;
@@ -36,30 +36,50 @@
         }
         #programs-list {
             display: flex;
-            overflow-x: auto;
+            flex-wrap: wrap;
             gap: 20px;
             padding-top: 15px;
-            scroll-behavior: smooth;
         }
-        #programs-list::-webkit-scrollbar {
-            height: 8px;
-        }
-        #programs-list::-webkit-scrollbar-thumb {
-            background-color: #007bff;
-            border-radius: 4px;
-        }
-        .test-item {
+        .program-card {
             min-width: 250px;
-            flex-shrink: 0;
-            background-color: #fff;
+            flex: 1 1 calc(33.33% - 20px);
+            background-color: #f9f9f9;
             border: 1px solid #ddd;
-            padding: 20px;
             border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
             transition: transform 0.3s ease;
+            font-size: 0.9rem;
         }
-        .test-item:hover {
+        .program-card:hover {
             transform: translateY(-5px);
         }
+        .program-card h4 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            text-align: center;
+        }
+        .program-card p {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .program-card ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 8px;
+        }
+        .program-card li {
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        .program-card a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .program-card a:hover {
+            text-decoration: underline;
+        }
+
         .custom-radio {
             display: flex;
             align-items: center;
@@ -99,7 +119,6 @@
     </style>
 </head>
 <body>
-
 <!-- Шапка -->
 <header class="header">
     <div class="container">
@@ -133,13 +152,16 @@
                 <button type="submit" id="submit-btn" style="display: none; margin-left: 10px;">Получить результат</button>
             </div>
         </form>
+
         <!-- Результат -->
         <div id="test-result" style="margin-top: 30px;"></div>
+
         <!-- Подходящие программы -->
         <section id="programs-section" style="display: none; margin-top: 40px;">
             <h3 style="font-size: 1.5rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
-            <div id="programs-list" style="display: flex; gap: 20px; overflow-x: auto;"></div>
+            <div id="programs-list" style="display: flex; flex-wrap: wrap; gap: 20px;"></div>
         </section>
+
         <!-- График -->
         <div id="chart-section" style="margin-top: 60px; text-align: center; display: none;">
             <canvas id="instituteChart" width="800" height="400"></canvas>
@@ -297,7 +319,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+        const percentageScores = {};
+        for (let key in scores) {
+            percentageScores[key] = ((scores[key] / totalScore) * 100).toFixed(1);
+        }
+
+        const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, '');
 
         try {
             const response = await fetch('submit_test.php', {
@@ -312,53 +340,85 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             result.programs.forEach(item => {
                 const program = item.program;
+
                 const card = document.createElement('div');
-                card.className = 'test-item';
+                card.className = 'program-card';
+
+                let vacanciesHTML = '';
+                for (let profession in item.vacancies_by_profession) {
+                    const vacancies = item.vacancies_by_profession[profession];
+                    vacanciesHTML += `<strong>${profession}</strong><ul>`;
+                    if (vacancies.length > 0) {
+                        vacancies.forEach(v => {
+                            vacanciesHTML += `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`;
+                        });
+                    } else {
+                        vacanciesHTML += `<li>Нет вакансий</li>`;
+                    }
+                    vacanciesHTML += '</ul>';
+                }
+
                 card.innerHTML = `
                     <h4>${program.code} — ${program.name}</h4>
-                    <p><strong>Подходящие профессии:</strong> ${item.professions.join(', ')}</p>
+                    <p><strong>Подходящие профессии:</strong><br>${item.professions.join(' | ')}</p>
                     <hr>
-                    <h5>Подходящие вакансии:</h5>
-                    <ul>
-                        ${item.vacancies.map(v => `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</li>`).join('')}
-                    </ul>
+                    <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
+                    ${vacanciesHTML}
                 `;
                 programsList.appendChild(card);
             });
+
             programsSection.style.display = 'block';
 
             const ctx = document.getElementById('instituteChart').getContext('2d');
-            if (window.myChartInstance) window.myChartInstance.destroy();
+
+            // Удаляем предыдущую диаграмму корректно
+            if (window.myChartInstance) {
+                window.myChartInstance.destroy();
+            }
+
+            // Проверяем, чтобы все данные были числовыми
+            const labels = Object.keys(percentageScores);
+            const dataValues = Object.values(percentageScores).map(Number).filter(Boolean); // фильтруем NaN
+
+            if (labels.length === 0 || dataValues.length === 0) {
+                chartSection.style.display = 'none';
+                console.warn("Недостаточно данных для отрисовки диаграммы");
+                return;
+            }
+
             window.myChartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'pie',
                 data: {
-                    labels: Object.keys(scores),
+                    labels: labels,
                     datasets: [{
-                        label: 'Баллы по институтам',
-                        data: Object.values(scores),
-                        backgroundColor: '#007bff'
+                        label: 'Процентное распределение',
+                        data: dataValues,
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { size: 16 },
+                                padding: 20
+                            }
+                        },
                         tooltip: {
                             callbacks: {
-                                label: context => `${context.parsed.y} баллов`
+                                label: context => `${context.parsed} %`
                             }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
                         }
                     }
                 }
             });
 
             chartSection.style.display = 'block';
+
         } catch (err) {
             console.error("Ошибка:", err);
             resultDiv.innerHTML = `<p style="color:red;">Ошибка загрузки данных</p>`;
@@ -368,6 +428,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderQuestions(currentPage);
 });
 </script>
-
 </body>
 </html>
