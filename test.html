@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Профориентационный тест</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Подключаем Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <style>
         .question {
@@ -28,93 +29,6 @@
         }
         #programs-list .program-card {
             font-size: 16px;
-        }
-        canvas#instituteChart {
-            margin-top: 50px;
-            max-width: 100%;
-            height: auto;
-        }
-        #programs-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding-top: 15px;
-        }
-        .program-card {
-            min-width: 250px;
-            flex: 1 1 calc(33.33% - 20px);
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            box-sizing: border-box;
-            transition: transform 0.3s ease;
-            font-size: 0.9rem;
-        }
-        .program-card:hover {
-            transform: translateY(-5px);
-        }
-        .program-card h4 {
-            font-size: 1.1rem;
-            margin-top: 0;
-            text-align: center;
-        }
-        .program-card p {
-            font-size: 0.9rem;
-            text-align: center;
-        }
-        .program-card ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin-top: 8px;
-        }
-        .program-card li {
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-        }
-        .program-card a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        .program-card a:hover {
-            text-decoration: underline;
-        }
-
-        .custom-radio {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .custom-radio input[type="radio"] {
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ccc;
-            border-radius: 50%;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        .custom-radio input[type="radio"]:checked {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .custom-radio input[type="radio"]:checked::after {
-            content: '';
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .controls button,
-        .cta-button {
-            font-size: 18px !important;
-            padding: 14px 24px !important;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -150,9 +64,9 @@
                 <button type="button" id="prev-btn" disabled>← Предыдущие</button>
                 <button type="button" id="next-btn">Следующие →</button>
                 <button type="submit" id="submit-btn" style="display: none; margin-left: 10px;">Получить результат</button>
+                <button type="button" id="restart-test" style="display: none; margin-left: 10px; background-color: #dc3545; color: white;">Пройти тест заново</button>
             </div>
         </form>
-
         <!-- Результат -->
         <div id="test-result" style="margin-top: 30px;"></div>
 
@@ -162,10 +76,8 @@
             <div id="programs-list" style="display: flex; flex-wrap: wrap; gap: 20px;"></div>
         </section>
 
-        <!-- График -->
-        <div id="chart-section" style="margin-top: 60px; text-align: center; display: none;">
-            <canvas id="instituteChart" width="800" height="400"></canvas>
-        </div>
+        <!-- График (теперь после карточек) -->
+        <canvas id="institute-chart" width="400" height="300" style="margin-top: 40px; display: none;"></canvas>
     </div>
 </section>
 
@@ -175,7 +87,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedUser = localStorage.getItem('user');
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
-
     if (!storedUser && window.location.pathname.includes('profile')) {
         window.location.href = 'login.html';
         return;
@@ -202,14 +113,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const submitBtn = document.getElementById('submit-btn');
+    const restartBtn = document.getElementById('restart-test');
     const resultDiv = document.getElementById('test-result');
     const programsList = document.getElementById('programs-list');
     const programsSection = document.getElementById('programs-section');
-    const chartSection = document.getElementById('chart-section');
-
     const questionsPerPage = 10;
     let currentPage = 0;
-
+    let shuffledQuestions = [];
+    let answers = {};
     const questions = [
         { text: "Интересует ли вас изучение физико-химических свойств различных материалов...", institute: "Политехнический институт" },
         { text: "Готовы ли вы к разработке технологических процессов получения...", institute: "Политехнический институт" },
@@ -226,8 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         { text: "Интересует ли вас изучение исторических стилей?", institute: "Институт горного дела и строительства" },
         { text: "Готовы ли вы решать практические задачи?", institute: "Институт горного дела и строительства" },
         { text: "Хотели бы вы создавать экологичные проектные решения?", institute: "Институт горного дела и строительства" },
-        { text: "Хотели бы вы изучать методы математического моделирования?", institute: "Институт прикладной математики и компьютерных наук" },
-        { text: "Интересует ли вас разработка алгоритмов и программного обеспечения?", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Готовы ли вы освоить современные технологии программирования?", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Хотели бы вы применять методы машинного обучения?", institute: "Институт прикладной математики и компьютерных наук" },
         { text: "Интересует ли вас анализ и обработка больших массивов данных?", institute: "Институт прикладной математики и компьютерных наук" },
@@ -248,46 +157,80 @@ document.addEventListener('DOMContentLoaded', async () => {
         { text: "Интересует ли вас управление радиоэлектронными системами...", institute: "Институт высокоточных систем им. Грязева" }
     ];
 
-    const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
-    const answers = {};
+    function loadTestState() {
+        const state = localStorage.getItem('testState');
+        if (state) {
+            const parsed = JSON.parse(state);
+            shuffledQuestions = parsed.shuffledQuestions || [...questions].sort(() => Math.random() - 0.5);
+            answers = parsed.answers || {};
+            currentPage = parsed.currentPage || 0;
+        } else {
+            shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+            answers = {};
+            currentPage = 0;
+        }
+    }
+
+    function saveTestState() {
+        localStorage.setItem('testState', JSON.stringify({
+            shuffledQuestions,
+            answers,
+            currentPage
+        }));
+    }
+
+    function resetTestState() {
+        localStorage.removeItem('testState');
+        shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+        answers = {};
+        currentPage = 0;
+        renderQuestions(currentPage);
+        programsSection.style.display = 'none';
+        resultDiv.innerHTML = '';
+        programsList.innerHTML = '';
+        document.getElementById("institute-chart").style.display = 'none'; // Скрыть график
+    }
 
     function renderQuestions(page) {
         container.innerHTML = '';
         const start = page * questionsPerPage;
         const end = start + questionsPerPage;
         const pageQuestions = shuffledQuestions.slice(start, end);
-
         pageQuestions.forEach((q, index) => {
             const qIndex = start + index;
-            const idYes = `q-${qIndex}-yes`;
-            const idNo = `q-${qIndex}-no`;
-
+            const val = answers[qIndex];
             const div = document.createElement('div');
             div.className = 'question';
             div.innerHTML = `
                 <p><strong>${q.text}</strong></p>
-                <label for="${idYes}"><input type="radio" name="q${qIndex}" id="${idYes}" value="1"> Да</label>
-                <label for="${idNo}"><input type="radio" name="q${qIndex}" id="${idNo}" value="0"> Нет</label>
+                <label><input type="radio" name="q${qIndex}" value="1" ${val === '1' ? 'checked' : ''}> Да</label>
+                <label><input type="radio" name="q${qIndex}" value="0" ${val === '0' ? 'checked' : ''}> Нет</label>
             `;
             container.appendChild(div);
         });
-
         prevBtn.disabled = (currentPage === 0);
         nextBtn.style.display = (end < shuffledQuestions.length) ? 'inline-block' : 'none';
         submitBtn.style.display = (end >= shuffledQuestions.length) ? 'inline-block' : 'none';
+        restartBtn.style.display = (end >= shuffledQuestions.length) ? 'inline-block' : 'none';
     }
 
     function saveCurrentAnswers() {
         const formData = new FormData(form);
-        for (let i = 0; i < shuffledQuestions.length; i++) {
-            const val = formData.get(`q${i}`);
-            if (val !== undefined) answers[i] = val;
-        }
+        shuffledQuestions.forEach((_, index) => {
+            const val = formData.get(`q${index}`);
+            if (val !== null) {
+                answers[index] = val;
+            } else if (!(index in answers)) {
+                answers[index] = ""; // помечаем как неотвеченный
+            }
+        });
+        saveTestState();
     }
 
+    // ==== События ====
     prevBtn.addEventListener('click', () => {
+        saveCurrentAnswers();
         if (currentPage > 0) {
-            saveCurrentAnswers();
             currentPage--;
             renderQuestions(currentPage);
         }
@@ -298,6 +241,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentPage < Math.ceil(shuffledQuestions.length / questionsPerPage) - 1) {
             currentPage++;
             renderQuestions(currentPage);
+        }
+    });
+
+    restartBtn.addEventListener('click', () => {
+        if (confirm("Вы уверены, что хотите начать тест заново?")) {
+            resetTestState();
         }
     });
 
@@ -319,12 +268,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
-        const percentageScores = {};
-        for (let key in scores) {
-            percentageScores[key] = ((scores[key] / totalScore) * 100).toFixed(1);
-        }
-
         const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, '');
 
         try {
@@ -335,15 +278,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const result = await response.json();
 
+            // Отображение результата
             resultDiv.innerHTML = `<p><strong>Вам подходит:</strong> ${result.theme || 'не определено'}</p>`;
             programsList.innerHTML = '';
 
             result.programs.forEach(item => {
-                const program = item.program;
-
                 const card = document.createElement('div');
                 card.className = 'program-card';
-
                 let vacanciesHTML = '';
                 for (let profession in item.vacancies_by_profession) {
                     const vacancies = item.vacancies_by_profession[profession];
@@ -357,9 +298,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     vacanciesHTML += '</ul>';
                 }
-
                 card.innerHTML = `
-                    <h4>${program.code} — ${program.name}</h4>
+                    <h4>${item.program.code} — ${item.program.name}</h4>
                     <p><strong>Подходящие профессии:</strong><br>${item.professions.join(' | ')}</p>
                     <hr>
                     <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
@@ -370,54 +310,65 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             programsSection.style.display = 'block';
 
-            const ctx = document.getElementById('instituteChart').getContext('2d');
+            // Показываем и рисуем график
+            document.getElementById("institute-chart").style.display = 'block';
 
-            // Удаляем предыдущую диаграмму корректно
-            if (window.myChartInstance) {
-                window.myChartInstance.destroy();
-            }
+            const chartLabels = Object.keys(scores);
+            const chartData = Object.values(scores);
 
-            // Проверяем, чтобы все данные были числовыми
-            const labels = Object.keys(percentageScores);
-            const dataValues = Object.values(percentageScores).map(Number).filter(Boolean); // фильтруем NaN
+            // Удаляем предыдущий график
+            Chart.getChart("institute-chart")?.destroy();
 
-            if (labels.length === 0 || dataValues.length === 0) {
-                chartSection.style.display = 'none';
-                console.warn("Недостаточно данных для отрисовки диаграммы");
-                return;
-            }
+            const ctx = document.getElementById('institute-chart').getContext('2d');
 
-            window.myChartInstance = new Chart(ctx, {
+            const total = chartData.reduce((sum, val) => sum + val, 0);
+            const percentages = chartData.map(val => ((val / total) * 100).toFixed(1));
+
+            new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: labels,
+                    labels: chartLabels.map((label, i) => `${label} (${percentages[i]}%)`),
                     datasets: [{
-                        label: 'Процентное распределение',
-                        data: dataValues,
-                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                        label: 'Распределение ответов',
+                        data: chartData,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: {
-                                font: { size: 16 },
-                                padding: 20
-                            }
+                            position: 'right'
                         },
                         tooltip: {
                             callbacks: {
-                                label: context => `${context.parsed} %`
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed || 0;
+                                    let percent = ((value / total) * 100).toFixed(1);
+                                    return ` ${label}: ${value} (${percent}%)`;
+                                }
                             }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Распределение ваших ответов по институтам'
                         }
                     }
                 }
             });
-
-            chartSection.style.display = 'block';
 
         } catch (err) {
             console.error("Ошибка:", err);
@@ -425,6 +376,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    loadTestState();
     renderQuestions(currentPage);
 });
 </script>
