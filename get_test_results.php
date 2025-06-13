@@ -23,16 +23,20 @@ try {
 
     $stmt = $pdo->prepare($query);
     $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+
     if ($date) {
         $stmt->bindValue(':date', $date, PDO::PARAM_STR);
     }
     if ($institute) {
         $stmt->bindValue(':institute', "%$institute%", PDO::PARAM_STR);
     }
+
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // 👇 Убедись, что возвращаются все записи
     echo json_encode($results);
+
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Ошибка сервера']);

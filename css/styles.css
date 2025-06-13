@@ -335,3 +335,41 @@ form button[type="submit"]:hover {
 .test-results p {
     margin-bottom: 10px;
 }
+/* Улучшение дизайна карточек */
+.program-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    width: calc(33.33% - 20px);
+    min-width: 250px;
+    max-width: 31%;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.program-card:hover {
+    transform: translateY(-5px);
+}
+
+.program-card ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.program-card li {
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+.program-card a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.program-card a:hover {
+    text-decoration: underline;
+}
