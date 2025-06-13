@@ -44,19 +44,20 @@ try {
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Парсим результаты
+    // Парсим результаты так же, как делает get_test_results.php
     $formattedResults = array_map(function ($result) {
         $parsed = json_decode($result['result_json'], true);
+
         return [
+            'id' => $result['id'],
             'login' => $result['login'],
             'created_at' => $result['created_at'],
-            'institute' => $parsed['theme'] ?? 'Не определено',
-            'programs' => $parsed['programs'] ?? [],
-            'vacancies' => $parsed['vacancies'] ?? []
+            'result_json' => $result['result_json'] // передаём оригинальный JSON
         ];
     }, $results);
 
-    echo json_encode($formattedResults);
+    echo json_encode($formattedResults, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Ошибка сервера']);
 }
