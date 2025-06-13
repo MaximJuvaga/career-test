@@ -12,6 +12,9 @@ $data = json_decode(file_get_contents('php://input'), true);
 $answers = $data['answers'] ?? [];
 $theme = $data['theme'] ?? null;
 
+// Получаем вопросы с институтами (обязательно!)
+$questions = $data['questions'] ?? [];
+
 // Программы по институтам
 $programsMapping = [
     'Политехнический институт' => [
@@ -61,12 +64,9 @@ function getVacancies($profession) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
     curl_close($ch);
-
     if (!$response) return [];
-
     $data = json_decode($response, true);
     $vacancies = [];
-
     foreach ($data['items'] as $item) {
         $salary = 'Не указана';
         if (!empty($item['salary'])) {
@@ -77,7 +77,6 @@ function getVacancies($profession) {
             elseif ($from) $salary = "от $from $currency";
             elseif ($to) $salary = "до $to $currency";
         }
-
         $vacancies[] = [
             'title' => $item['name'] ?? '',
             'employer' => $item['employer']['name'] ?? 'Не указан',
@@ -85,23 +84,41 @@ function getVacancies($profession) {
             'url' => $item['alternate_url'] ?? '#' 
         ];
     }
-
     return array_slice($vacancies, 0, 2); // Ограничиваем до 2 вакансий
 }
 
 try {
-    // Берём все 3 программы из выбранного института
+    // Получаем вопросы из запроса
+$questions = $data['questions'] ?? [];
+
+// Обнуляем счётчики
+$scores = [
+    "Политехнический институт" => 0,
+    "Институт горного дела и строительства" => 0,
+    "Институт прикладной математики и компьютерных наук" => 0,
+    "Институт высокоточных систем им. Грязева" => 0
+];
+
+// Считаем баллы по фактическим вопросам
+foreach ($answers as $index => $value) {
+    if ($value === '1' && isset($questions[$index])) {
+        $inst = $questions[$index]['institute'] ?? '';
+        if (isset($scores[$inst])) {
+            $scores[$inst]++;
+        }
+    }
+}
+
+    // Берём программы из выбранного института
     $programsToSave = $programsMapping[$theme] ?? [];
 
-    // Формируем данные для сохранения
+    // Формируем данные с вакансиями
     $programsWithVacancies = array_map(function ($program) use ($professionsMapping) {
         $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
         $vacanciesByProfession = [];
-
         foreach ($allProfessions as $profession) {
             $vacanciesByProfession[$profession] = getVacancies($profession);
         }
-
         return [
             'program' => $program,
             'professions' => $allProfessions,
@@ -115,7 +132,8 @@ try {
         'theme' => $theme ?: 'Не определено',
         'programs' => $programsToSave,
         'professions_mapping' => $professionsMapping,
-        'vacancies_by_program' => $programsWithVacancies
+        'vacancies_by_program' => $programsWithVacancies,
+        'scores' => $scores // <-- Сохраняем scores
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)]);
 
 } catch (PDOException $e) {
@@ -128,15 +146,17 @@ echo json_encode([
     'programs' => array_map(function ($program) use ($professionsMapping) {
         $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
         $vacanciesByProfession = [];
-
         foreach ($allProfessions as $profession) {
             $vacanciesByProfession[$profession] = getVacancies($profession);
         }
-
         return [
             'program' => $program,
             'professions' => $allProfessions,
             'vacancies_by_profession' => $vacanciesByProfession
         ];
-    }, $programsMapping[$theme] ?? [])
+    }, $programsMapping[$theme] ?? []),
+
+    'scores' => $scores // <-- Отправляем scores на клиент
 ]);
+
+exit;

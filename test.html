@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch('submit_test.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ answers, theme })
+                body: JSON.stringify({ answers, theme, scores, questions: shuffledQuestions })
             });
             const result = await response.json();
 

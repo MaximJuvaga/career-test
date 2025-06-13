@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         function drawChart(canvasId, instituteCounts) {
             const ctx = document.getElementById(canvasId).getContext('2d');
+
             const institutes = Object.keys(instituteCounts);
             const values = Object.values(instituteCounts);
             const total = values.reduce((sum, val) => sum + val, 0);
@@ -87,93 +88,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         function renderTestResultCard(result) {
-            let parsedResult;
-            try {
-                // Попытка распарсить JSON
-                parsedResult = JSON.parse(result.result_json);
-            } catch (error) {
-                // Если JSON некорректен, используем дефолтные значения
-                console.error("Ошибка при парсинге JSON:", error);
-                parsedResult = {
-                    theme: "Не определено",
-                    programs: [],
-                    professions_mapping: {},
-                    vacancies_by_program: []
-                };
-            }
+    let parsedResult;
+    try {
+        parsedResult = JSON.parse(result.result_json);
+    } catch (error) {
+        console.error("Ошибка парсинга JSON:", error);
+        parsedResult = {
+            theme: "Не определено",
+            programs: [],
+            professions_mapping: {},
+            vacancies_by_program: []
+        };
+    }
 
-            const institute = parsedResult.theme || 'Не определено';
-            const programs = parsedResult.programs || [];
-            const vacanciesByProgram = parsedResult.vacancies_by_program || [];
-            const professionsMapping = parsedResult.professions_mapping || {};
+    const institute = parsedResult.theme || 'Не определено';
+    const programs = parsedResult.programs || [];
+    const vacanciesByProgram = parsedResult.vacancies_by_program || [];
+    const professionsMapping = parsedResult.professions_mapping || {};
 
-            const scores = {
-                "Политехнический институт": 0,
-                "Институт горного дела и строительства": 0,
-                "Институт прикладной математики и компьютерных наук": 0,
-                "Институт высокоточных систем им. Грязева": 0
-            };
+    // Получаем scores из JSON
+    const scores = parsedResult.scores || {
+        "Политехнический институт": 0,
+        "Институт горного дела и строительства": 0,
+        "Институт прикладной математики и компьютерных наук": 0,
+        "Институт высокоточных систем им. Грязева": 0
+    };
 
-            if (parsedResult.theme in scores) {
-                scores[parsedResult.theme] = programs.length * 10; // вес по количеству программ
-            }
+    const card = document.createElement('div');
+    card.className = 'test-item';
 
-            const card = document.createElement('div');
-            card.className = 'test-item';
+    let programsHTML = '';
+    programs.forEach(program => {
+        let vacanciesHTML = '';
+        const programCode = program.code;
+        const programName = program.name;
+        const professions = professionsMapping[programCode] || ['Профессия не определена'];
 
-            let programsHTML = '';
-
-            programs.forEach(program => {
-                let vacanciesHTML = '';
-                const programCode = program.code;
-                const programName = program.name;
-
-                const professions = professionsMapping[programCode] || ['Профессия не определена'];
-
-                professions.forEach(profession => {
-                    const vacancies = (vacanciesByProgram.find(p => p.program.code === programCode)?.vacancies_by_profession?.[profession]) || [];
-
-                    vacanciesHTML += `<strong>${profession}</strong><ul>`;
-                    if (vacancies.length > 0) {
-                        vacancies.forEach(vacancy => {
-                            vacanciesHTML += `<li><a href="${vacancy.url}" target="_blank">${vacancy.title}, ${vacancy.employer}, ${vacancy.salary}</a></li>`;
-                        });
-                    } else {
-                        vacanciesHTML += `<li>Нет вакансий</li>`;
-                    }
-                    vacanciesHTML += '</ul>';
+        professions.forEach(profession => {
+            const vacancies = (vacanciesByProgram.find(p => p.program && p.program.code === programCode)?.vacancies_by_profession?.[profession]) || [];
+            vacanciesHTML += `<strong>${profession}</strong><ul>`;
+            if (vacancies.length > 0) {
+                vacancies.forEach(vacancy => {
+                    vacanciesHTML += `<li><a href="${vacancy.url}" target="_blank">${vacancy.title}, ${vacancy.employer}, ${vacancy.salary}</a></li>`;
                 });
+            } else {
+                vacanciesHTML += `<li>Нет вакансий</li>`;
+            }
+            vacanciesHTML += '</ul>';
+        });
 
-                programsHTML += `
-                    <div class="program-card">
-                        <h4>${programCode} — ${programName}</h4>
-                        <p><strong>Подходящие профессии:</strong><br>${professions.join(' | ')}</p>
-                        <hr>
-                        <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
-                        ${vacanciesHTML}
-                    </div>
-                `;
-            });
+        programsHTML += `
+            <div class="program-card">
+                <h4>${programCode} — ${programName}</h4>
+                <p><strong>Подходящие профессии:</strong><br>${professions.join(' | ')}</p>
+                <hr>
+                <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
+                ${vacanciesHTML}
+            </div>
+        `;
+    });
 
-            card.innerHTML = `
-                <p><strong>Институт:</strong> ${institute}</p>
-                <p><strong>Дата:</strong> ${result.created_at}</p>
-            `;
+    card.innerHTML = `
+        <p><strong>Институт:</strong> ${institute}</p>
+        <p><strong>Дата:</strong> ${result.created_at}</p>
+    `;
 
-            const chartContainer = document.createElement('div');
-            chartContainer.style.width = '400px';
-            chartContainer.innerHTML = `<canvas id="chart-${result.id}" width="400" height="300"></canvas>`;
+    const chartContainer = document.createElement('div');
+    chartContainer.style.width = '400px';
+    chartContainer.innerHTML = `<canvas id="chart-${result.id}" width="400" height="300"></canvas>`;
+    const programList = document.createElement('div');
+    programList.innerHTML = programsHTML;
 
-            const programList = document.createElement('div');
-            programList.innerHTML = programsHTML;
+    card.appendChild(chartContainer);
+    card.appendChild(programList);
+    testResultsDiv.appendChild(card);
 
-            card.appendChild(chartContainer);
-            card.appendChild(programList);
-
-            testResultsDiv.appendChild(card);
-
-            drawChart(`chart-${result.id}`, scores);
-        }
+    drawChart(`chart-${result.id}`, scores); // <-- Рисуем график
+}
 
         async function loadResults(filters = {}, page = 0) {
             let url = data.role === 'abiturient'
@@ -267,6 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             loadResults({}, currentPage); // загрузка всех данных
         }
+
     } catch (err) {
         console.error("Ошибка загрузки данных", err);
         localStorage.removeItem('user');
