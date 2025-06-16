@@ -33,6 +33,7 @@
     </style>
 </head>
 <body>
+
 <!-- Шапка -->
 <header class="header">
     <div class="container">
@@ -57,7 +58,10 @@
 <section class="test-section">
     <div class="container">
         <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Профориентационный тест</h2>
-        <p style="font-size: 1.25rem; margin-bottom: 30px;">Ответьте на вопросы и узнайте, какое направление вам подходит.</p>
+        <p style="font-size: 1.25rem; margin-bottom: 30px;">
+            Ответьте на вопросы и узнайте, какое направление вам подходит.
+        </p>
+
         <form id="advanced-test-form">
             <div id="questions-container"></div>
             <div class="controls" style="text-align: center;">
@@ -67,17 +71,19 @@
                 <button type="button" id="restart-test" style="display: none; margin-left: 10px; background-color: #dc3545; color: white;">Пройти тест заново</button>
             </div>
         </form>
+
         <!-- Результат -->
         <div id="test-result" style="margin-top: 30px;"></div>
+
+        <!-- Графики -->
+        <canvas id="institute-chart" width="600" height="300" style="margin-top: 40px; display: none;"></canvas>
+        <canvas id="program-chart" width="600" height="300" style="margin-top: 40px; display: none;"></canvas>
 
         <!-- Подходящие программы -->
         <section id="programs-section" style="display: none; margin-top: 40px;">
             <h3 style="font-size: 1.5rem; margin-bottom: 20px;">Подходящие направления обучения</h3>
             <div id="programs-list" style="display: flex; flex-wrap: wrap; gap: 20px;"></div>
         </section>
-
-        <!-- График (теперь после карточек) -->
-        <canvas id="institute-chart" width="400" height="300" style="margin-top: 40px; display: none;"></canvas>
     </div>
 </section>
 
@@ -87,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedUser = localStorage.getItem('user');
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
+
     if (!storedUser && window.location.pathname.includes('profile')) {
         window.location.href = 'login.html';
         return;
@@ -117,11 +124,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultDiv = document.getElementById('test-result');
     const programsList = document.getElementById('programs-list');
     const programsSection = document.getElementById('programs-section');
+
     const questionsPerPage = 10;
     let currentPage = 0;
     let shuffledQuestions = [];
     let answers = {};
-const questions = [
+
+   const questions = [
 
   // ————————————————————————
   { text: "Интересует ли вас изучение физико-химических свойств различных материалов?", institute: "Политехнический институт", programCodes: ["22.03.01"] },
@@ -241,6 +250,7 @@ const questions = [
 ];
 
 
+
     function loadTestState() {
         const state = localStorage.getItem('testState');
         if (state) {
@@ -272,7 +282,8 @@ const questions = [
         programsSection.style.display = 'none';
         resultDiv.innerHTML = '';
         programsList.innerHTML = '';
-        document.getElementById("institute-chart").style.display = 'none'; // Скрыть график
+        document.getElementById("institute-chart").style.display = 'none';
+        document.getElementById("program-chart").style.display = 'none';
     }
 
     function renderQuestions(page) {
@@ -280,6 +291,7 @@ const questions = [
         const start = page * questionsPerPage;
         const end = start + questionsPerPage;
         const pageQuestions = shuffledQuestions.slice(start, end);
+
         pageQuestions.forEach((q, index) => {
             const qIndex = start + index;
             const val = answers[qIndex];
@@ -292,6 +304,7 @@ const questions = [
             `;
             container.appendChild(div);
         });
+
         prevBtn.disabled = (currentPage === 0);
         nextBtn.style.display = (end < shuffledQuestions.length) ? 'inline-block' : 'none';
         submitBtn.style.display = (end >= shuffledQuestions.length) ? 'inline-block' : 'none';
@@ -334,132 +347,190 @@ const questions = [
         }
     });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        saveCurrentAnswers();
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveCurrentAnswers();
 
-        const scores = {
-            "Политехнический институт": 0,
-            "Институт горного дела и строительства": 0,
-            "Институт прикладной математики и компьютерных наук": 0,
-            "Институт высокоточных систем им. Грязева": 0
-        };
+    const scores = {
+        "Политехнический институт": 0,
+        "Институт горного дела и строительства": 0,
+        "Институт прикладной математики и компьютерных наук": 0,
+        "Институт высокоточных систем им. Грязева": 0
+    };
 
-        Object.entries(answers).forEach(([index, value]) => {
-            if (value === '1') {
-                const inst = shuffledQuestions[index]?.institute;
-                if (inst in scores) scores[inst]++;
-            }
-        });
-
-        const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, '');
-
-        try {
-            const response = await fetch('submit_test.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ answers, theme, scores, questions: shuffledQuestions })
-            });
-            const result = await response.json();
-
-            // Отображение результата
-            resultDiv.innerHTML = `<p><strong>Вам подходит:</strong> ${result.theme || 'не определено'}</p>`;
-            programsList.innerHTML = '';
-
-            result.programs.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'program-card';
-                let vacanciesHTML = '';
-                for (let profession in item.vacancies_by_profession) {
-                    const vacancies = item.vacancies_by_profession[profession];
-                    vacanciesHTML += `<strong>${profession}</strong><ul>`;
-                    if (vacancies.length > 0) {
-                        vacancies.forEach(v => {
-                            vacanciesHTML += `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`;
-                        });
-                    } else {
-                        vacanciesHTML += `<li>Нет вакансий</li>`;
-                    }
-                    vacanciesHTML += '</ul>';
-                }
-                card.innerHTML = `
-                    <h4>${item.program.code} — ${item.program.name}</h4>
-                    <p><strong>Подходящие профессии:</strong><br>${item.professions.join(' | ')}</p>
-                    <hr>
-                    <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
-                    ${vacanciesHTML}
-                `;
-                programsList.appendChild(card);
-            });
-
-            programsSection.style.display = 'block';
-
-            // Показываем и рисуем график
-            document.getElementById("institute-chart").style.display = 'block';
-
-            const chartLabels = Object.keys(scores);
-            const chartData = Object.values(scores);
-
-            // Удаляем предыдущий график
-            Chart.getChart("institute-chart")?.destroy();
-
-            const ctx = document.getElementById('institute-chart').getContext('2d');
-
-            const total = chartData.reduce((sum, val) => sum + val, 0);
-            const percentages = chartData.map(val => ((val / total) * 100).toFixed(1));
-
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: chartLabels.map((label, i) => `${label} (${percentages[i]}%)`),
-                    datasets: [{
-                        label: 'Распределение ответов',
-                        data: chartData,
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(255, 206, 86, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(255, 206, 86, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    let value = context.parsed || 0;
-                                    let percent = ((value / total) * 100).toFixed(1);
-                                    return ` ${label}: ${value} (${percent}%)`;
-                                }
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Распределение ваших ответов по институтам'
-                        }
-                    }
-                }
-            });
-
-        } catch (err) {
-            console.error("Ошибка:", err);
-            resultDiv.innerHTML = `<p style="color:red;">Ошибка загрузки данных</p>`;
+    Object.entries(answers).forEach(([index, value]) => {
+        if (value === '1') {
+            const inst = shuffledQuestions[index]?.institute;
+            if (inst in scores) scores[inst]++;
         }
     });
 
+    const theme = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, '');
+
+    try {
+        const response = await fetch('submit_test.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ answers, theme, questions: shuffledQuestions })
+        });
+        const result = await response.json();
+
+        resultDiv.innerHTML = `<p><strong>Вам подходит:</strong> ${result.theme || 'не определено'}</p>`;
+        programsList.innerHTML = '';
+
+        result.programs.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'program-card';
+
+            let vacanciesHTML = '';
+            for (let profession in item.vacancies_by_profession) {
+                const vacancies = item.vacancies_by_profession[profession];
+                vacanciesHTML += `<strong>${profession}</strong><ul>`;
+                if (vacancies.length > 0) {
+                    vacancies.forEach(v => {
+                        vacanciesHTML += `<li><a href="${v.url}" target="_blank">${v.title}, ${v.employer}, ${v.salary}</a></li>`;
+                    });
+                } else {
+                    vacanciesHTML += `<li>Нет вакансий</li>`;
+                }
+                vacanciesHTML += '</ul>';
+            }
+
+            card.innerHTML = `
+                <h4>${item.program.code} — ${item.program.name}</h4>
+                <p><strong>Подходящие профессии:</strong><br>${item.professions.join(' | ')}</p>
+                <hr>
+                <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
+                ${vacanciesHTML}
+            `;
+            programsList.appendChild(card);
+        });
+
+        programsSection.style.display = 'block';
+
+        // Диаграмма по институтам
+        const chartLabels = Object.keys(result.scores);
+        const chartData = Object.values(result.scores);
+        const total = chartData.reduce((sum, val) => sum + val, 0);
+        const percentages = chartData.map(val => ((val / total) * 100).toFixed(1));
+
+        Chart.getChart("institute-chart")?.destroy();
+        const ctx1 = document.getElementById('institute-chart').getContext('2d');
+
+        new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: chartLabels.map((label, i) => `${label} (${percentages[i]}%)`),
+                datasets: [{
+                    label: 'Распределение ответов',
+                    data: chartData,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(255, 206, 86, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let percent = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} (${percent}%)`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение ваших ответов по институтам'
+                    }
+                }
+            }
+        });
+
+        document.getElementById("institute-chart").style.display = 'block';
+
+        // Диаграмма по программам
+        const programScores = result.program_scores;
+        const programLabels = [];
+        const programValues = [];
+
+        for (let code in programScores) {
+            const name = result.programs_mapping[code] || code;
+            programLabels.push(name);
+            programValues.push(programScores[code]);
+        }
+
+        Chart.getChart("program-chart")?.destroy();
+        const ctx2 = document.getElementById('program-chart').getContext('2d');
+
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: programLabels.map((label, i) => `${label} (${programValues[i]})`),
+                datasets: [{
+                    label: 'Баллы по программам',
+                    data: programValues,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                return `${label}: ${value} баллов`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Распределение баллов по программам'
+                    }
+                }
+            }
+        });
+
+        document.getElementById("program-chart").style.display = 'block';
+
+    } catch (err) {
+        console.error("Ошибка:", err);
+        resultDiv.innerHTML = `<p style="color:red;">Ошибка загрузки данных</p>`;
+    }
+});
     loadTestState();
     renderQuestions(currentPage);
 });

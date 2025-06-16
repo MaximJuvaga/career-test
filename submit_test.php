@@ -11,8 +11,6 @@ $userId = $_SESSION['user']['id'];
 $data = json_decode(file_get_contents('php://input'), true);
 $answers = $data['answers'] ?? [];
 $theme = $data['theme'] ?? null;
-
-// Получаем вопросы из запроса
 $questions = $data['questions'] ?? [];
 
 // Программы по институтам
@@ -60,7 +58,6 @@ $professionsMapping = [
     '15.03.04' => ['инженер по автоматизации', 'наладчик автоматики', 'программист ПЛК'],
     '27.03.01' => ['метролог', 'специалист по сертификации', 'инженер по качеству'],
     '23.03.01' => ['инженер транспортных систем', 'логист', 'диспетчер транспортных операций'],
-
     // Горное дело и строительство
     '07.03.01' => ['архитектор', 'проектировщик зданий', 'BIM-моделлер'],
     '21.03.01' => ['инженер нефтегазового комплекса', 'геолог', 'инженер по добыче полезных ископаемых'],
@@ -68,7 +65,6 @@ $professionsMapping = [
     '21.03.02' => ['землеустроитель', 'кадастровый инженер', 'инженер по геодезии'],
     '21.05.04' => ['инженер по бурению', 'инженер по разработке месторождений', 'горный инженер'],
     '08.03.01' => ['экономист предприятия', 'финансовый контролёр', 'бюджетный аналитик'],
-
     // Прикладная математика и КН
     '09.03.01' => ['системный программист', 'DevOps-инженер', 'QA-инженер'],
     '09.03.04' => ['fullstack-разработчик', 'backend-разработчик', 'автоматизатор тестирования'],
@@ -76,7 +72,6 @@ $professionsMapping = [
     '01.03.02' => ['аналитик данных', 'математик-программист', 'исследователь в области ИИ'],
     '09.03.03' => ['системный аналитик', 'разработчик приложений', 'IT-консультант'],
     '09.03.02' => ['инженер по информационным системам', 'специалист по цифровой трансформации', 'интегратор систем'],
-
     // Высокоточные системы
     '11.05.01' => ['радиоинженер', 'специалист по радиочастотам', 'техник связи'],
     '17.05.01' => ['инженер по качеству', 'специалист по ISO-стандартам', 'метролог'],
@@ -88,9 +83,7 @@ $professionsMapping = [
 
 function getVacancies($profession) {
     if (empty($profession)) return [];
-
     $url = "https://api.hh.ru/vacancies?text=" . urlencode($profession) . "&area=113&per_page=2";
-
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -99,14 +92,10 @@ function getVacancies($profession) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
     curl_close($ch);
-
     if (!$response) return [];
-
     $data = json_decode($response, true);
-
     if (json_last_error() !== JSON_ERROR_NONE) return [];
-
-    $vacancies = array_slice(array_map(function ($item) {
+    return array_slice(array_map(function ($item) {
         $salary = 'Не указана';
         if (!empty($item['salary'])) {
             $from = $item['salary']['from'] ?? null;
@@ -123,12 +112,10 @@ function getVacancies($profession) {
             'url' => $item['alternate_url'] ?? '#' 
         ];
     }, $data['items'] ?? []), 0, 2);
-
-    return $vacancies;
 }
 
 try {
-    // Считаем баллы по институтам
+    // Подсчёт баллов по институтам
     $scores = [
         "Политехнический институт" => 0,
         "Институт горного дела и строительства" => 0,
@@ -139,16 +126,41 @@ try {
     foreach ($answers as $index => $value) {
         if ($value === '1' && isset($questions[$index])) {
             $inst = $questions[$index]['institute'] ?? '';
-            if (isset($scores[$inst])) {
-                $scores[$inst]++;
+            if (isset($scores[$inst])) $scores[$inst]++;
+        }
+    }
+
+    // Институт с наибольшим количеством совпадений
+    $theme = array_keys($scores, max($scores))[0] ?? 'Не определено';
+
+    // Подсчёт баллов по программам
+    $programScores = [];
+    foreach ($programsMapping[$theme] as $program) {
+        $programScores[$program['code']] = 0;
+    }
+
+    foreach ($answers as $index => $value) {
+        if ($value === '1' && isset($questions[$index])) {
+            $questionPrograms = $questions[$index]['programCodes'] ?? [];
+            foreach ($questionPrograms as $progCode) {
+                if (isset($programScores[$progCode])) {
+                    $programScores[$progCode]++;
+                }
             }
         }
     }
 
-    // Берём программы из выбранного института
-    $programsToSave = $programsMapping[$theme] ?? [];
+    arsort($programScores);
+    $top3Programs = array_slice(array_keys($programScores), 0, 3);
 
-    // Формируем данные с вакансиями
+    // Формируем список трёх программ
+    $top3ProgramsData = array_filter($programsMapping[$theme], function ($p) use ($top3Programs) {
+        return in_array($p['code'], $top3Programs);
+    });
+
+    array_multisort(array_column($top3ProgramsData, 'code'), SORT_ASC, $top3ProgramsData);
+
+    // Парсим вакансии по этим программам
     $programsWithVacancies = array_map(function ($program) use ($professionsMapping) {
         $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
         $vacanciesByProfession = [];
@@ -162,40 +174,34 @@ try {
             'professions' => $allProfessions,
             'vacancies_by_profession' => $vacanciesByProfession
         ];
-    }, $programsToSave);
+    }, $top3ProgramsData);
 
     // Сохраняем результат в БД
     $stmt = $pdo->prepare("INSERT INTO test_results (user_id, result_json) VALUES (?, ?)");
     $stmt->execute([$userId, json_encode([
-        'theme' => $theme ?: 'Не определено',
-        'programs' => $programsToSave,
+        'theme' => $theme,
+        'programs' => $top3ProgramsData,
         'professions_mapping' => $professionsMapping,
         'vacancies_by_program' => $programsWithVacancies,
-        'scores' => $scores
+        'scores' => $scores,
+        'program_scores' => $programScores,
+        'programs_mapping' => array_reduce($programsMapping[$theme], function ($carry, $item) {
+            $carry[$item['code']] = $item['name'];
+            return $carry;
+        }, [])
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)]);
 
+    echo json_encode([
+        'theme' => $theme,
+        'programs' => $programsWithVacancies,
+        'scores' => $scores,
+        'program_scores' => $programScores,
+        'programs_mapping' => array_reduce($programsMapping[$theme], function ($carry, $item) {
+            $carry[$item['code']] = $item['name'];
+            return $carry;
+        }, [])
+    ]);
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Ошибка сервера']);
-    exit;
 }
-
-echo json_encode([
-    'theme' => $theme ?: 'Не определено',
-    'programs' => array_map(function ($program) use ($professionsMapping) {
-        $allProfessions = $professionsMapping[$program['code']] ?? ['Профессия не определена'];
-        $vacanciesByProfession = [];
-
-        foreach ($allProfessions as $profession) {
-            $vacanciesByProfession[$profession] = getVacancies($profession);
-        }
-
-        return [
-            'program' => $program,
-            'professions' => $allProfessions,
-            'vacancies_by_profession' => $vacanciesByProfession
-        ];
-    }, $programsMapping[$theme] ?? []),
-    'scores' => $scores
-]);
-
 exit;
