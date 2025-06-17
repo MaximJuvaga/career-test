@@ -8,6 +8,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statisticsSection = document.getElementById('statistics-section');
     const testResultsDiv = document.getElementById('test-results');
 
+    let programLinks = {};
+
+// Загружаем ссылки на программы с сервера
+    fetch('php/get_uni_programs.php')
+        .then(res => res.json())
+        .then(data => {
+            programLinks = data;
+        })
+        .catch(err => console.error("Ошибка загрузки программ:", err));
+
     if (!storedUser) {
         window.location.href = 'login.html';
         return;
@@ -39,87 +49,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         const itemsPerPage = 10;
 
         function renderTestResultCard(result) {
-            let parsedResult;
-            try {
-                parsedResult = JSON.parse(result.result_json);
-            } catch (error) {
-                console.error("Ошибка парсинга JSON:", error);
-                parsedResult = {
-                    theme: "Не определено",
-                    programs: [],
-                    professions_mapping: {},
-                    vacancies_by_program: []
-                };
-            }
+    let parsedResult;
+    try {
+        parsedResult = JSON.parse(result.result_json);
+    } catch (error) {
+        console.error("Ошибка парсинга JSON:", error);
+        parsedResult = {
+            theme: "Не определено",
+            programs: [],
+            professions_mapping: {},
+            vacancies_by_program: []
+        };
+    }
 
-            let programs = parsedResult.programs || [];
-            if (!Array.isArray(programs)) {
-                programs = Object.values(programs);
-            }
+    let programs = parsedResult.programs || [];
+    if (!Array.isArray(programs)) {
+        programs = Object.values(programs);
+    }
 
-            
-            const institute = parsedResult.theme || 'Не определено';
-            const scores = parsedResult.scores || {
-                "Политехнический институт": 0,
-                "Институт горного дела и строительства": 0,
-                "Институт прикладной математики и компьютерных наук": 0,
-                "Институт высокоточных систем им. Грязева": 0
-            };
+    const institute = parsedResult.theme || 'Не определено';
+    const scores = parsedResult.scores || {
+        "Политехнический институт": 0,
+        "Институт горного дела и строительства": 0,
+        "Институт прикладной математики и компьютерных наук": 0,
+        "Институт высокоточных систем им. Грязева": 0
+    };
 
-            const card = document.createElement('div');
-            card.className = 'test-item';
+    const card = document.createElement('div');
+    card.className = 'test-item';
 
-            let programsHTML = '';
-            if (Array.isArray(programs)) {
-                programs.forEach(program => {
-                    let vacanciesHTML = '';
-                    const programCode = program.code;
-                    const programName = program.name;
-                    const professions = parsedResult.professions_mapping?.[programCode] || ['Профессия не определена'];
-                    professions.forEach(profession => {
-                        const vacancies = (parsedResult.vacancies_by_program?.find(p =>
-                            p.program && p.program.code === programCode)?.vacancies_by_profession?.[profession]) || [];
-                        vacanciesHTML += `<strong>${profession}</strong><ul>`;
-                        if (vacancies.length > 0) {
-                            vacancies.forEach(vacancy => {
-                                vacanciesHTML += `<li><a href="${vacancy.url}" target="_blank">${vacancy.title}, ${vacancy.employer}, ${vacancy.salary}</a></li>`;
-                            });
-                        } else {
-                            vacanciesHTML += `<li>Нет вакансий</li>`;
-                        }
-                        vacanciesHTML += '</ul>';
+    let programsHTML = '';
+    if (Array.isArray(programs)) {
+        programs.forEach(program => {
+            let vacanciesHTML = '';
+            const programCode = program.code;
+            const programName = program.name;
+
+            // Получаем ссылку на сайт ТулГУ
+            const programLink = programLinks[programCode] || '#';
+
+            const professions = parsedResult.professions_mapping?.[programCode] || ['Профессия не определена'];
+            professions.forEach(profession => {
+                const vacancies = (parsedResult.vacancies_by_program?.find(p =>
+                    p.program && p.program.code === programCode)?.vacancies_by_profession?.[profession]) || [];
+
+                vacanciesHTML += `<strong>${profession}</strong><ul>`;
+                if (vacancies.length > 0) {
+                    vacancies.forEach(vacancy => {
+                        vacanciesHTML += `<li><a href="${vacancy.url}" target="_blank">${vacancy.title}, ${vacancy.employer}, ${vacancy.salary}</a></li>`;
                     });
+                } else {
+                    vacanciesHTML += `<li>Нет вакансий</li>`;
+                }
+                vacanciesHTML += '</ul>';
+            });
 
-                    programsHTML += `
-                        <div class="program-card">
-                            <h4>${programCode} — ${programName}</h4>
-                            <p><strong>Подходящие профессии:</strong><br>${professions.join(' | ')}</p>
-                            <hr>
-                            <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
-                            ${vacanciesHTML}
-                        </div>
-                    `;
-                });
-            }
-
-            card.innerHTML = `
-                <p><strong>Институт:</strong> ${institute}</p>
-                <p><strong>Дата:</strong> ${result.created_at}</p>
-                <p><strong>Логин:</strong> ${result.login}</p>
+            // Теперь выводим название программы как ссылку
+            programsHTML += `
+                <div class="program-card">
+                    <h4>
+                        <a href="${programLink}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                            ${programCode} — ${programName}
+                        </a>
+                    </h4>
+                    <p><strong>Подходящие профессии:</strong><br>${professions.join(' | ')}</p>
+                    <hr>
+                    <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
+                    ${vacanciesHTML}
+                </div>
             `;
+        });
+    }
 
-            const chartContainer = document.createElement('div');
-            chartContainer.style.width = '400px';
-            chartContainer.innerHTML = `<canvas id="chart-${result.id}" width="400" height="300"></canvas>`;
-            const programList = document.createElement('div');
-            programList.innerHTML = programsHTML;
+    card.innerHTML = `
+        <p><strong>Институт:</strong> ${institute}</p>
+        <p><strong>Дата:</strong> ${result.created_at}</p>
+    `;
 
-            card.appendChild(chartContainer);
-            card.appendChild(programList);
-            testResultsDiv.appendChild(card);
+    if (data.role === 'teacher') {
+        card.innerHTML = `
+            <p><strong>Институт:</strong> ${institute}</p>
+            <p><strong>Дата:</strong> ${result.created_at}</p>
+            <p><strong>Логин:</strong> ${result.login}</p>
+        `;
+    }
 
-            drawChart(`chart-${result.id}`, scores);
-        }
+    const chartContainer = document.createElement('div');
+    chartContainer.style.width = '400px';
+    chartContainer.innerHTML = `<canvas id="chart-${result.id}" width="400" height="300"></canvas>`;
+
+    const programList = document.createElement('div');
+    programList.innerHTML = programsHTML;
+
+    card.appendChild(chartContainer);
+    card.appendChild(programList);
+
+    testResultsDiv.appendChild(card);
+
+    drawChart(`chart-${result.id}`, scores);
+}
 
         function drawChart(canvasId, instituteCounts) {
             const ctx = document.getElementById(canvasId).getContext('2d');
@@ -153,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'right' },
+                        legend: { position: 'bottom' },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -185,13 +213,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultsResponse = await fetch(url);
     const resultsData = await resultsResponse.json();
 
-    testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
+    testResultsDiv.innerHTML = '<h3>Результаты:</h3>';
     if (resultsData.length === 0) {
         testResultsDiv.innerHTML += '<p>Нет результатов по заданным критериям.</p>';
         return;
     }
 
-    // 🔥 СОРТИРОВКА: самые новые результаты идут первыми
     resultsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const paginatedResults = resultsData.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
@@ -208,7 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         btn.textContent = i + 1;
         btn.onclick = () => {
             currentPage = i;
-            testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
+            testResultsDiv.innerHTML = '<h3>Результаты:</h3>';
             resultsData.slice(i * itemsPerPage, (i + 1) * itemsPerPage).forEach(renderTestResultCard);
         };
         if (i === currentPage) btn.disabled = true;

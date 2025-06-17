@@ -113,6 +113,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultDiv = document.getElementById('test-result');
     const programsList = document.getElementById('programs-list');
     const programsSection = document.getElementById('programs-section');
+    
+    const programLinks = {
+        // Политехнический институт
+        "15.03.01": "https://abitur71.tsu.tula.ru/program/15.03.01", 
+        "15.03.05": "https://abitur71.tsu.tula.ru/program/15.03.05", 
+        "22.03.01": "https://abitur71.tsu.tula.ru/program/22.03.01", 
+        "15.03.04": "https://abitur71.tsu.tula.ru/program/15.03.04", 
+        "27.03.01": "https://abitur71.tsu.tula.ru/program/27.03.01", 
+        "23.03.01": "https://abitur71.tsu.tula.ru/program/23.03.01", 
+
+        // Горное дело и строительство
+        "07.03.01": "https://abitur71.tsu.tula.ru/program/07.03.01", 
+        "21.03.01": "https://abitur71.tsu.tula.ru/program/21.03.01", 
+        "54.03.01": "https://abitur71.tsu.tula.ru/program/54.03.01", 
+        "21.03.02": "https://abitur71.tsu.tula.ru/program/21.03.02", 
+        "21.05.04": "https://abitur71.tsu.tula.ru/program/21.05.04", 
+        "08.03.01": "https://abitur71.tsu.tula.ru/program/08.03.01", 
+
+        // Прикладная математика и компьютерные науки
+        "09.03.01": "https://abitur71.tsu.tula.ru/program/09.03.01", 
+        "09.03.04": "https://abitur71.tsu.tula.ru/program/09.03.04", 
+        "10.05.01": "https://abitur71.tsu.tula.ru/program/10.05.01", 
+        "01.03.02": "https://abitur71.tsu.tula.ru/program/01.03.02", 
+        "09.03.03": "https://abitur71.tsu.tula.ru/program/09.03.03", 
+        "09.03.02": "https://abitur71.tsu.tula.ru/program/09.03.02", 
+
+        // Высокоточные системы им. Грязева
+        "11.05.01": "https://abitur71.tsu.tula.ru/program/11.05.01", 
+        "17.05.01": "https://abitur71.tsu.tula.ru/program/17.05.01", 
+        "24.05.02": "https://abitur71.tsu.tula.ru/program/24.05.02", 
+        "15.05.01": "https://abitur71.tsu.tula.ru/program/15.05.01", 
+        "15.03.06": "https://abitur71.tsu.tula.ru/program/15.03.06", 
+        "13.03.02": "https://abitur71.tsu.tula.ru/program/13.03.02" 
+    };
 
     const questionsPerPage = 10;
     let currentPage = 0;
@@ -380,9 +414,16 @@ form.addEventListener('submit', async (e) => {
                 vacanciesHTML += '</ul>';
             }
 
+            // Получаем ссылку из programLinks, если она есть
+            const link = programLinks[item.program.code] || '#';
+
             card.innerHTML = `
-                <h4>${item.program.code} — ${item.program.name}</h4>
-                <p><strong>Подходящие профессии:</strong><br>${item.professions.join(' | ')}</p>
+                <h4>
+                    <a href="${link}" target="_blank" style="color: #007bff; text-decoration: underline;">
+                        ${item.program.code} — ${item.program.name}
+                    </a>
+                </h4>
+                <p><strong>Подходящие профессии:</strong><br>${item.professions.join('| ')}</p>
                 <hr>
                 <h5 style="margin-top: 10px; font-size: 1rem;">Вакансии по профессиям:</h5>
                 ${vacanciesHTML}
