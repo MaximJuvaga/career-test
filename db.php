@@ -2,8 +2,8 @@
 // db.php
 $host = 'localhost';
 $dbname = 'career_test';
-$username = 'root'; // обычно root
-$password = '';     // обычно пусто на локальном сервере
+$username = 'root'; 
+$password = '';    
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);

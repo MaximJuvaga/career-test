@@ -8,7 +8,6 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'teacher') {
     exit;
 }
 
-// Получаем параметры фильтрации
 $login = $_GET['login'] ?? '';
 $date = $_GET['date'] ?? '';
 $institute = $_GET['institute'] ?? '';
@@ -44,7 +43,6 @@ try {
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Парсим результаты так же, как делает get_test_results.php
     $formattedResults = array_map(function ($result) {
         $parsed = json_decode($result['result_json'], true);
 
@@ -52,7 +50,7 @@ try {
             'id' => $result['id'],
             'login' => $result['login'],
             'created_at' => $result['created_at'],
-            'result_json' => $result['result_json'] // передаём оригинальный JSON
+            'result_json' => $result['result_json'] 
         ];
     }, $results);
 

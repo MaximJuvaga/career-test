@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
 </head>
 <body>
-<!-- Шапка -->
+
 <header class="header">
     <div class="container">
         <div class="logo">Карьера: Твой путь</div>
@@ -19,19 +19,17 @@
                 <li><a href="programs.html">Направления обучения</a></li>
             </ul>
         </nav>
-        <div class="user-menu">
+        
+    </div>
+    <div class="user-menu">
             <span id="user-login"></span>
             <button id="logout-button">Выйти</button>
         </div>
-    </div>
 </header>
 
-<!-- Блок профиля -->
 <section class="profile-section">
     <div class="container">
         <h2 id="profile-title">Личный кабинет</h2>
-
-        <!-- Фильтр результатов (для абитуриента) -->
         <div id="filters-abiturient" style="display: none;">
             <h3>Фильтр результатов</h3>
             <form id="filter-form-abiturient">
@@ -44,7 +42,7 @@
 
         <div id="user-info"></div>
 
-        <!-- Форма фильтрации (только для преподавателя) -->
+
         <div id="filters" style="display: none;">
             <h3>Фильтр результатов</h3>
             <form id="filter-form">
@@ -55,19 +53,16 @@
             </form>
         </div>
 
-        <!-- Сводная статистика (для преподавателя) -->
         <div id="statistics-section" style="display: none; margin-top: 40px;">
             <h3>Сводная статистика</h3>
        <canvas id="institute-stats-chart" width="200" height="100"></canvas>
         <canvas id="program-stats-chart" width="420" height="210" style="margin-top: 30px;"></canvas>
         </div>
-
-        <!-- Результаты тестов -->
         <div id="test-results"></div>
     </div>
 </section>
 
-<!-- Подвал -->
+
 <footer class="footer">
     <div class="container">
         <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>

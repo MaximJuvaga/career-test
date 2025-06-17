@@ -13,7 +13,6 @@ $answers = $data['answers'] ?? [];
 $theme = $data['theme'] ?? null;
 $questions = $data['questions'] ?? [];
 
-// Программы по институтам
 $programsMapping = [
     'Политехнический институт' => [
         ['code' => '15.03.01', 'name' => 'Машиностроение'],
@@ -49,7 +48,6 @@ $programsMapping = [
     ]
 ];
 
-// Профессии для парсинга вакансий
 $professionsMapping = [
     // Политехнический институт
     '15.03.01' => ['инженер-конструктор', 'CAD-инженер', 'инженер по технологиям машиностроения'],
@@ -115,7 +113,6 @@ function getVacancies($profession) {
 }
 
 try {
-    // Подсчёт баллов по институтам
     $scores = [
         "Политехнический институт" => 0,
         "Институт горного дела и строительства" => 0,
@@ -132,8 +129,6 @@ try {
 
     // Институт с наибольшим количеством совпадений
     $theme = array_keys($scores, max($scores))[0] ?? 'Не определено';
-
-    // Подсчёт баллов по программам
     $programScores = [];
     foreach ($programsMapping[$theme] as $program) {
         $programScores[$program['code']] = 0;
@@ -190,8 +185,6 @@ try {
             return $carry;
         }, [])
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)]);
-
-    // Отправляем данные в интерфейс
     echo json_encode([
         'theme' => $theme,
         'programs' => $programsWithVacancies,

@@ -33,8 +33,6 @@ try {
 
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // 👇 Убедись, что возвращаются все записи
     echo json_encode($results);
 
 } catch (PDOException $e) {

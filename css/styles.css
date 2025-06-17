@@ -373,3 +373,21 @@ form button[type="submit"]:hover {
 .program-card a:hover {
     text-decoration: underline;
 }
+.header {
+    position: relative;
+    /* Чтобы .user-menu мог позиционироваться относительно header */
+}
+
+.user-menu {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

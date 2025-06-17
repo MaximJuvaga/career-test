@@ -8,8 +8,6 @@
     <script src="js/auth.js"></script>
 </head>
 <body>
-
-<!-- Шапка -->
 <header class="header">
     <div class="container">
         <div class="logo">Карьера: Твой путь</div>
@@ -22,14 +20,13 @@
                 <li><a href="programs.html">Направления обучения</a></li>
             </ul>
         </nav>
-        <div class="user-menu">
+       
+    </div>
+     <div class="user-menu">
             <span id="user-login"></span>
             <button id="logout-button">Выйти</button>
         </div>
-    </div>
 </header>
-
-<!-- Главный блок -->
 <section class="hero">
     <div class="container">
         <h1 style="font-size: 48px; margin-bottom: 20px; color: #007bff;">Найдите свою карьерную траекторию</h1> 
@@ -37,7 +34,6 @@
     </div>
 </section>
 
-<!-- Описание теста -->
 <section id="about" class="about-test">
     <div class="container">
         <h2 style="font-size: 36px; margin-bottom: 20px;">Как работает тест?</h2>
@@ -45,7 +41,7 @@
     </div>
 </section>
 
-<!-- Подвал -->
+
 <footer class="footer">
     <div class="container">
         <p>&copy; 2025 Карьера: Твой путь. Все права защищены.</p>
@@ -59,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userLoginSpan = document.getElementById('user-login');
     const logoutBtn = document.getElementById('logout-button');
 
-    // Проверяем localStorage
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
         console.log('localStorage пустой — редирект на login.html');
@@ -70,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userData = JSON.parse(storedUser);
     userLoginSpan.textContent = `Добро пожаловать, ${userData.login}`;
 
-    // Проверяем сессию через auth_check.php
     fetch('auth_check.php')
         .then(response => {
             if (!response.ok) {

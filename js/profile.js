@@ -216,8 +216,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.role === 'teacher') {
                 const instituteCount = {};
                 const programCount = {};
-
-                // Сбор статистики по названиям программ
                 resultsData.forEach(result => {
                     try {
                         const parsed = JSON.parse(result.result_json);
@@ -375,8 +373,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Очистка предыдущих результатов
                 testResultsDiv.innerHTML = '<p>Загрузка...</p>';
                 currentPage = 0;
-
-                // Загрузка с новыми фильтрами
                 loadResults({ date, institute, login }, currentPage);
             });
 
