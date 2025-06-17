@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 programs = Object.values(programs);
             }
 
+            
             const institute = parsedResult.theme || 'Не определено';
             const scores = parsedResult.scores || {
                 "Политехнический институт": 0,
@@ -172,78 +173,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        async function loadResults(filters = {}, page = 0) {
-            let url = data.role === 'abiturient'
-                ? `get_test_results.php?user_id=${data.id}`
-                : `get_all_test_results.php`;
+       async function loadResults(filters = {}, page = 0) {
+    let url = data.role === 'abiturient'
+        ? `get_test_results.php?user_id=${data.id}`
+        : `get_all_test_results.php`;
 
-            if (filters.date) url += `&date=${filters.date}`;
-            if (filters.institute) url += `&institute=${filters.institute}`;
-            if (filters.login) url += `&login=${filters.login}`;
+    if (filters.date) url += `?date=${filters.date}`;
+    if (filters.institute) url += `?institute=${filters.institute}`;
+    if (filters.login) url += `?login=${filters.login}`;
 
-            const resultsResponse = await fetch(url);
-            const resultsData = await resultsResponse.json();
+    const resultsResponse = await fetch(url);
+    const resultsData = await resultsResponse.json();
 
+    testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
+    if (resultsData.length === 0) {
+        testResultsDiv.innerHTML += '<p>Нет результатов по заданным критериям.</p>';
+        return;
+    }
+
+    // 🔥 СОРТИРОВКА: самые новые результаты идут первыми
+    resultsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const paginatedResults = resultsData.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+    paginatedResults.forEach(renderTestResultCard);
+
+    const totalPages = Math.ceil(resultsData.length / itemsPerPage);
+    const paginationDiv = document.createElement('div');
+    paginationDiv.style.marginTop = '20px';
+    paginationDiv.style.display = 'flex';
+    paginationDiv.style.gap = '10px';
+
+    for (let i = 0; i < totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i + 1;
+        btn.onclick = () => {
+            currentPage = i;
             testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
-            if (resultsData.length === 0) {
-                testResultsDiv.innerHTML += '<p>Нет результатов по заданным критериям.</p>';
-                return;
-            }
+            resultsData.slice(i * itemsPerPage, (i + 1) * itemsPerPage).forEach(renderTestResultCard);
+        };
+        if (i === currentPage) btn.disabled = true;
+        paginationDiv.appendChild(btn);
+    }
 
-            const paginatedResults = resultsData.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
-            paginatedResults.forEach(renderTestResultCard);
+    testResultsDiv.appendChild(paginationDiv);
 
-            const totalPages = Math.ceil(resultsData.length / itemsPerPage);
-            const paginationDiv = document.createElement('div');
-            paginationDiv.style.marginTop = '20px';
-            paginationDiv.style.display = 'flex';
-            paginationDiv.style.gap = '10px';
+    if (data.role === 'teacher') {
+        const instituteCount = {};
+        const programCount = {};
+        resultsData.forEach(result => {
+            try {
+                const parsed = JSON.parse(result.result_json);
+                const institute = parsed.theme;
+                if (institute) {
+                    instituteCount[institute] = (instituteCount[institute] || 0) + 1;
+                }
 
-            for (let i = 0; i < totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i + 1;
-                btn.onclick = () => {
-                    currentPage = i;
-                    testResultsDiv.innerHTML = '<h3>Ваши результаты:</h3>';
-                    resultsData.slice(i * itemsPerPage, (i + 1) * itemsPerPage).forEach(renderTestResultCard);
-                };
-                if (i === currentPage) btn.disabled = true;
-                paginationDiv.appendChild(btn);
-            }
+                let programs = parsed.programs || [];
+                if (!Array.isArray(programs)) {
+                    programs = Object.values(programs);
+                }
 
-            testResultsDiv.appendChild(paginationDiv);
-
-            if (data.role === 'teacher') {
-                const instituteCount = {};
-                const programCount = {};
-                resultsData.forEach(result => {
-                    try {
-                        const parsed = JSON.parse(result.result_json);
-                        const institute = parsed.theme;
-                        if (institute) {
-                            instituteCount[institute] = (instituteCount[institute] || 0) + 1;
-                        }
-
-                        let programs = parsed.programs || [];
-                        if (!Array.isArray(programs)) {
-                            programs = Object.values(programs);
-                        }
-
-                        programs.forEach(prog => {
-                            const name = prog.name;
-                            if (name) {
-                                programCount[name] = (programCount[name] || 0) + 1;
-                            }
-                        });
-                    } catch (e) {
-                        console.error("Ошибка парсинга результата", e);
+                programs.forEach(prog => {
+                    const name = prog.name;
+                    if (name) {
+                        programCount[name] = (programCount[name] || 0) + 1;
                     }
                 });
-
-                updateStatisticsCharts(instituteCount, programCount);
+            } catch (e) {
+                console.error("Ошибка парсинга результата", e);
             }
-        }
+        });
 
+        updateStatisticsCharts(instituteCount, programCount);
+    }
+}
         function updateStatisticsCharts(instituteStats, programStats) {
             const instituteCanvas = document.getElementById('institute-stats-chart').getContext('2d');
             const programCanvas = document.getElementById('program-stats-chart').getContext('2d');
@@ -331,6 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        
         if (data.role === 'abiturient') {
             const filtersAbiturient = document.getElementById('filters-abiturient');
             const filterForm = document.getElementById('filter-form-abiturient');

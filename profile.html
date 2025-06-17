@@ -5,6 +5,32 @@
     <title>Личный кабинет</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+
+    <style>
+        .suggestions {
+            position: absolute;
+            border: 1px solid #ccc;
+            background: white;
+            z-index: 100;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: calc(100% - 2px);
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .suggestions li {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestions li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,49 +45,59 @@
                 <li><a href="programs.html">Направления обучения</a></li>
             </ul>
         </nav>
-        
-    </div>
-    <div class="user-menu">
+        <div class="user-menu">
             <span id="user-login"></span>
             <button id="logout-button">Выйти</button>
         </div>
+    </div>
 </header>
 
 <section class="profile-section">
     <div class="container">
         <h2 id="profile-title">Личный кабинет</h2>
+
+        <!-- Форма фильтра для абитуриента -->
         <div id="filters-abiturient" style="display: none;">
             <h3>Фильтр результатов</h3>
             <form id="filter-form-abiturient">
                 <input type="date" name="date"/>
-                <input type="text" name="institute" placeholder="Институт"/>
+                <div class="filter-group">
+                    <input type="text" name="institute" placeholder="Институт" id="instituteFilterAbiturient"/>
+                    <ul id="instituteSuggestionsAbiturient" class="suggestions"></ul>
+                </div>
                 <button type="submit">Применить</button>
                 <button type="button" id="reset-filter">Сбросить</button>
             </form>
         </div>
 
+        <!-- Информация о пользователе -->
         <div id="user-info"></div>
 
-
+        <!-- Форма фильтра для преподавателя -->
         <div id="filters" style="display: none;">
             <h3>Фильтр результатов</h3>
             <form id="filter-form">
                 <input type="text" name="login" placeholder="Логин абитуриента">
                 <input type="date" name="date">
-                <input type="text" name="institute" placeholder="Институт">
+                <div class="filter-group">
+                    <input type="text" name="institute" placeholder="Институт" id="instituteFilterTeacher"/>
+                    <ul id="instituteSuggestionsTeacher" class="suggestions"></ul>
+                </div>
                 <button type="submit">Найти</button>
             </form>
         </div>
 
+        <!-- Статистика -->
         <div id="statistics-section" style="display: none; margin-top: 40px;">
             <h3>Сводная статистика</h3>
-       <canvas id="institute-stats-chart" width="200" height="100"></canvas>
-        <canvas id="program-stats-chart" width="420" height="210" style="margin-top: 30px;"></canvas>
+            <canvas id="institute-stats-chart" width="200" height="100"></canvas>
+            <canvas id="program-stats-chart" width="420" height="210" style="margin-top: 30px;"></canvas>
         </div>
+
+        <!-- Результаты тестирования -->
         <div id="test-results"></div>
     </div>
 </section>
-
 
 <footer class="footer">
     <div class="container">
@@ -71,5 +107,75 @@
 
 <script src="js/auth.js"></script>
 <script src="js/profile.js"></script>
+
+<!-- Кастомный JS для автозаполнения институтов -->
+<script>
+    // Список доступных институтов
+    const institutesList = [
+        "Институт высокоточных систем им. Грязева",
+        "Институт прикладной математики и компьютерных наук",
+        "Институт горного дела и строительства",
+        "Политехнический институт"
+    ];
+
+    // Функция отображения выпадающего списка
+    function setupInstituteAutocomplete(inputElement, suggestionsElement) {
+        const input = document.getElementById(inputElement);
+        const suggestions = document.getElementById(suggestionsElement);
+
+        input.addEventListener('focus', () => {
+            showSuggestions(institutesList, suggestions);
+        });
+
+        input.addEventListener('input', (e) => {
+            const value = e.target.value.trim().toLowerCase();
+            const filtered = institutesList.filter(inst =>
+                inst.toLowerCase().includes(value)
+            );
+            showSuggestions(filtered, suggestions);
+        });
+
+        suggestions.addEventListener('click', (e) => {
+            if (e.target.tagName === 'LI') {
+                input.value = e.target.textContent;
+                suggestions.innerHTML = '';
+                suggestions.style.display = 'none';
+
+                // Имитируем submit формы
+                const form = input.closest('form');
+                if (form) {
+                    const formData = new FormData(form);
+                    const filters = {
+                        date: formData.get('date'),
+                        login: formData.get('login'),
+                        institute: e.target.textContent
+                    };
+                    applyFilters(filters);
+                }
+            }
+        });
+    }
+
+    function showSuggestions(suggestionsList, container) {
+        container.innerHTML = '';
+        if (!suggestionsList.length) {
+            container.style.display = 'none';
+            return;
+        }
+
+        suggestionsList.forEach(inst => {
+            const li = document.createElement('li');
+            li.textContent = inst;
+            container.appendChild(li);
+        });
+
+        container.style.display = 'block';
+    }
+
+    // Подключаем автозаполнение к обоим полям
+    setupInstituteAutocomplete('instituteFilterAbiturient', 'instituteSuggestionsAbiturient');
+    setupInstituteAutocomplete('instituteFilterTeacher', 'instituteSuggestionsTeacher');
+</script>
+
 </body>
 </html>
