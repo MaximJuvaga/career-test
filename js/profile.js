@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filtersDiv = document.getElementById('filters');
     const statisticsSection = document.getElementById('statistics-section');
     const testResultsDiv = document.getElementById('test-results');
-
+    
     let programLinks = {};
 
 // Загружаем ссылки на программы с сервера
