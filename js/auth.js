@@ -1,4 +1,3 @@
-// auth.js — клиентская проверка авторизации
 
 async function checkAuth() {
     const storedUser = localStorage.getItem('user');

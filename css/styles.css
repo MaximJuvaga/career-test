@@ -17,7 +17,7 @@ body {
     padding: 0 20px;
 }
 
-/* === Шапка === */
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -72,7 +72,6 @@ body {
     background-color: #0056b3;
 }
 
-/* === Главная страница === */
 .hero {
     text-align: center;
     padding: 80px 20px;
@@ -106,7 +105,7 @@ body {
     background-color: #0056b3;
 }
 
-/* === Блок "О тесте" === */
+
 .about-test {
     padding: 50px 20px;
     text-align: center;
@@ -119,7 +118,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* === Кнопки === */
 .cta-button {
     background-color: #007bff;
     color: #fff;
@@ -135,7 +133,6 @@ body {
     background-color: #0056b3;
 }
 
-/* === Подвал === */
 .footer {
     text-align: center;
     padding: 20px;
@@ -154,7 +151,6 @@ body {
     color: #007bff;
 }
 
-/* === Блок с программами === */
 .programs-section {
     padding: 60px 20px;
     background-color: #f4f4f9;
@@ -168,8 +164,6 @@ body {
 .programs-section p {
     margin-bottom: 30px;
 }
-
-/* === Карточки направлений === */
 .test-item,
 .profession-item,
 .vacancy-item {
@@ -199,7 +193,6 @@ body {
     flex-direction: column;
 }
 
-/* Улучшение дизайна карточек */
 .program-card {
     background: #fff;
     border: 1px solid #ddd;
@@ -235,8 +228,6 @@ body {
 .program-card a:hover {
     text-decoration: underline;
 }
-
-/* === Форма === */
 .form-section {
     background-color: #fff;
     padding: 40px 20px;
@@ -273,7 +264,6 @@ form button[type="submit"]:hover {
     background-color: #0056b3;
 }
 
-/* === Результат теста === */
 .result-header {
     display: flex;
     justify-content: space-between;
@@ -303,7 +293,6 @@ form button[type="submit"]:hover {
     margin-bottom: 5px;
 }
 
-/* === Профиль === */
 .profile-container {
     padding: 40px 20px;
     background-color: #fff;
@@ -335,7 +324,6 @@ form button[type="submit"]:hover {
 .test-results p {
     margin-bottom: 10px;
 }
-/* Улучшение дизайна карточек */
 .program-card {
     background: #fff;
     border: 1px solid #ddd;
@@ -375,7 +363,6 @@ form button[type="submit"]:hover {
 }
 .header {
     position: relative;
-    /* Чтобы .user-menu мог позиционироваться относительно header */
 }
 
 .user-menu {

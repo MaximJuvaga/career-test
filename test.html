@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const programsSection = document.getElementById('programs-section');
     
     const programLinks = {
-        // Политехнический институт
+        // Политех
         "15.03.01": "https://abitur71.tsu.tula.ru/program/15.03.01", 
         "15.03.05": "https://abitur71.tsu.tula.ru/program/15.03.05", 
         "22.03.01": "https://abitur71.tsu.tula.ru/program/22.03.01", 
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         "27.03.01": "https://abitur71.tsu.tula.ru/program/27.03.01", 
         "23.03.01": "https://abitur71.tsu.tula.ru/program/23.03.01", 
 
-        // Горное дело и строительство
+        // Горное дело 
         "07.03.01": "https://abitur71.tsu.tula.ru/program/07.03.01", 
         "21.03.01": "https://abitur71.tsu.tula.ru/program/21.03.01", 
         "54.03.01": "https://abitur71.tsu.tula.ru/program/54.03.01", 
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         "21.05.04": "https://abitur71.tsu.tula.ru/program/21.05.04", 
         "08.03.01": "https://abitur71.tsu.tula.ru/program/08.03.01", 
 
-        // Прикладная математика и компьютерные науки
+        // Прикладная математика и комп
         "09.03.01": "https://abitur71.tsu.tula.ru/program/09.03.01", 
         "09.03.04": "https://abitur71.tsu.tula.ru/program/09.03.04", 
         "10.05.01": "https://abitur71.tsu.tula.ru/program/10.05.01", 
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         "09.03.03": "https://abitur71.tsu.tula.ru/program/09.03.03", 
         "09.03.02": "https://abitur71.tsu.tula.ru/program/09.03.02", 
 
-        // Высокоточные системы им. Грязева
+        // Высокоточные системы
         "11.05.01": "https://abitur71.tsu.tula.ru/program/11.05.01", 
         "17.05.01": "https://abitur71.tsu.tula.ru/program/17.05.01", 
         "24.05.02": "https://abitur71.tsu.tula.ru/program/24.05.02", 
@@ -175,8 +175,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   { text: "Хотели бы вы заниматься сертификацией и обеспечением соответствия продукции ГОСТ и ISO-стандартам?", institute: "Политехнический институт", programCodes: ["27.03.01"] },
   { text: "Интересует ли вас работа с измерительными и контрольными системами на производстве?", institute: "Политехнический институт", programCodes: ["27.03.01"] },
   { text: "Готовы ли вы организовывать и контролировать качество выпускаемых изделий?", institute: "Политехнический институт", programCodes: ["27.03.01"] },
-
-
   { text: "Интересуетесь ли вы изучением принципов построения, элементной базы и характеристик радиоэлектронных устройств и систем?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["11.05.01"] },
   { text: "Готовы ли вы освоить методы моделирования, анализа и синтеза радиоэлектронных схем и систем?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["11.05.01"] },
   { text: "Хотели бы вы поучаствовать в разработке и проектировании новых радиотехнических устройств и комплексов?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["11.05.01"] },
@@ -202,9 +200,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   { text: "Интересует ли вас применение микропроцессоров и ПЛК в радиосистемах?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["15.03.06"] },
   { text: "Готовы ли вы к разработке алгоритмов управления радиоустройствами?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["15.03.06"] },
   { text: "Хотели бы вы использовать системы сбора и обработки данных в радиоэлектронике?", institute: "Институт высокоточных систем им. Грязева", programCodes: ["15.03.06"] },
-
-
-
   { text: "Хотели бы вы изучать методы математического моделирования и численные методы?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["01.03.02", "09.03.03"] },
   { text: "Интересует ли вас разработка алгоритмов и программного обеспечения для решения прикладных задач?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["09.03.01", "09.03.04"] },
   { text: "Готовы ли вы освоить современные технологии программирования и работы с базами данных?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["09.03.01", "09.03.04"] },
@@ -232,7 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   { text: "Готовы ли вы к работе с сетевыми протоколами и безопасностью передачи данных?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["10.05.01"] },
   { text: "Хотели бы вы заниматься разработкой систем обработки данных и аналитики?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["01.03.02", "09.03.02"] },
   { text: "Интересует ли вас использование Python, C++, Java или SQL в проектах?", institute: "Институт прикладной математики и компьютерных наук", programCodes: ["09.03.01", "09.03.04"] },
-
   { text: "Хотели бы вы участвовать в разработке концептуальных дизайнов и концепций для зданий, сооружений или городских пространств?", institute: "Институт горного дела и строительства", programCodes: ["07.03.01", "21.03.02"] },
   { text: "Интересует ли вас проектирование функциональных, безопасных и эстетичных интерьеров и экстерьеров?", institute: "Институт горного дела и строительства", programCodes: ["07.03.01", "54.03.01"] },
   { text: "Готовы ли вы глубоко изучать строительные материалы, конструкции и инженерные системы?", institute: "Институт горного дела и строительства", programCodes: ["21.03.02"] },
@@ -413,8 +407,6 @@ form.addEventListener('submit', async (e) => {
                 }
                 vacanciesHTML += '</ul>';
             }
-
-            // Получаем ссылку из programLinks, если она есть
             const link = programLinks[item.program.code] || '#';
 
             card.innerHTML = `
@@ -432,8 +424,6 @@ form.addEventListener('submit', async (e) => {
         });
 
         programsSection.style.display = 'block';
-
-        // Диаграмма по институтам
         const chartLabels = Object.keys(result.scores);
         const chartData = Object.values(result.scores);
         const total = chartData.reduce((sum, val) => sum + val, 0);
@@ -487,8 +477,6 @@ form.addEventListener('submit', async (e) => {
         });
 
         document.getElementById("institute-chart").style.display = 'block';
-
-        // Диаграмма по программам
         const programScores = result.program_scores;
         const programLabels = [];
         const programValues = [];

@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     let programLinks = {};
 
-// Загружаем ссылки на программы с сервера
     fetch('php/get_uni_programs.php')
         .then(res => res.json())
         .then(data => {
@@ -85,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const programCode = program.code;
             const programName = program.name;
 
-            // Получаем ссылку на сайт ТулГУ
             const programLink = programLinks[programCode] || '#';
 
             const professions = parsedResult.professions_mapping?.[programCode] || ['Профессия не определена'];
@@ -104,7 +102,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 vacanciesHTML += '</ul>';
             });
 
-            // Теперь выводим название программы как ссылку
             programsHTML += `
                 <div class="program-card">
                     <h4>
@@ -401,7 +398,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const institute = formData.get('institute');
                 const login = formData.get('login');
                 
-                // Очистка предыдущих результатов
                 testResultsDiv.innerHTML = '<p>Загрузка...</p>';
                 currentPage = 0;
                 loadResults({ date, institute, login }, currentPage);

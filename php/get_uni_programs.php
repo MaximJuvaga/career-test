@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: application/json');
 
-// Все нужные нам программы с их URL-ами
 $targetPrograms = [
     '15.03.01' => 'https://abitur71.tsu.tula.ru/program/15.03.01', 
     '15.03.05' => 'https://abitur71.tsu.tula.ru/program/15.03.05', 
@@ -13,7 +12,6 @@ $targetPrograms = [
     '17.05.01' => 'https://abitur71.tsu.tula.ru/program/17.05.01' 
 ];
 
-// Список названий направлений
 $programNames = [
     // Политехнический институт
     '15.03.01' => 'Машиностроение',
@@ -64,16 +62,14 @@ foreach ($targetPrograms as $code => $url) {
     @$dom->loadHTML($html);
     $xpath = new DOMXPath($dom);
 
-    // Ищем заголовок (если он есть)
     $titleNode = $xpath->query('//h1[@class="entry-title"]')->item(0);
     $title = trim($titleNode ? $titleNode->textContent : 'Не найдено');
 
-    // Если название не найдено — берём из списка
     $name = $title === 'Не найдено' && isset($programNames[$code])
         ? $programNames[$code]
         : $title;
 
-    // Формируем полную ссылку
+
     $fullLink = filter_var($url, FILTER_VALIDATE_URL) ? $url : 'https://abitur71.tsu.tula.ru'  . $url;
 
     $programs[] = [

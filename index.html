@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'login.html';
         });
 
-    // Выход
     logoutBtn.addEventListener('click', async () => {
         const response = await fetch('logout.php');
         if (response.ok) {
