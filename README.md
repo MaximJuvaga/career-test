@@ -27,9 +27,13 @@
 
 ## Технологии
 
-
 PHP, MySQL,HTML5, CSS3, JavaScript, Bootstrap 5, Chart.js ,Apache 
 hh.ru API, Данные ТулГУ 
+
+## демонстрация работы
+![Авторизация](images/регистрация.png)
+![результат тестирования](images/результаты.png)
+![лк](images/лк_абитур.png)
 
 ## запуск
 
@@ -37,3 +41,4 @@ hh.ru API, Данные ТулГУ
    ```bash
    git clone 
    cd career-path
+   
